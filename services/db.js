@@ -1,0 +1,49 @@
+const mysql = require("mysql");
+require("dotenv").config();
+
+const config = {
+    db: {
+        connectionLimit: 100000,
+        host: process.env.DB_HOST,
+        user: process.env.DB_USER,
+        password: process.env.DB_PASSWORD,
+        database: process.env.DB_DATABASE,
+        port: process.env.DB_PORT
+    },
+    listPerPage: process.env.LIST_PER_PAGE,
+    token_key: process.env.API_KEY
+}
+
+let query = (sql = "select * from actor limit ?,? ", params = [0, 10]) => {
+
+    return new Promise((resolve, reject) => {
+        try {
+            const db = mysql.createPool(config.db);
+            db.getConnection((err, connection) => {
+                if (err) {
+                    console.log(err);
+                    resolve(err);
+                } else {
+                    const search_query = mysql.format(sql, params);
+                    connection.query(search_query, (err, rows) => {
+                        if (err) {
+                            console.log(err);
+                            resolve(err);
+                        } else {    
+                            resolve(rows);
+                        }
+                        connection.release();
+                    });
+                }
+            });
+        } catch (error) {
+            console.log(error);
+            return reject(error.message);
+        }
+    });
+}
+
+module.exports = {
+    query,
+    config
+}
