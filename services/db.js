@@ -14,7 +14,7 @@ const config = {
     token_key: process.env.API_KEY
 }
 
-let query = (sql = "select * from actor limit ?,? ", params = [0, 10]) => {
+let query = (sql = "select * from people limit ?,? ", params = [0, 10]) => {
 
     return new Promise((resolve, reject) => {
         try {
