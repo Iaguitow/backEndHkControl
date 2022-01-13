@@ -12,7 +12,6 @@ const routes = express.Router();
   
 //////////////////////////////////POST LOGIN//////////////////////////////////
 routes.route("/login").post((req,res) => {
-
     new Promise((resolve,reject) => {
         try{
             var sql = " SELECT ";
@@ -29,7 +28,7 @@ routes.route("/login").post((req,res) => {
             var params = [req.query.email];
             db.query(sql,params).then((result) => {
                 if(result[0] === undefined){
-                    resolve(res.send("User Not Found!"));
+                    resolve(res.send("User Not Found"));
                     return;
                 }
                 helper.checkUser(req.query.password, result[0].password).then(response =>{

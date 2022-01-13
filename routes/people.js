@@ -4,100 +4,82 @@ const helper = require("../helper.js");
 const express = require("express");
 const routes = express.Router();
 
-routes.use(function(req, res, next) {
+routes.use(function (req, res, next) {
     console.log(req.url, "@", Date.now());
     next();
-  });
-  
+});
+
 //////////////////////////////////GET PEOPLE//////////////////////////////////
-routes.route("/people").get((req,res) => {
+routes.route("/people").get((req, res) => {
 
     //Used to define if the get will response a list or not.
     var listPeople = req.query.listPeople;
     // if necessary a pagination. 
-    var page = typeof req.query.page === 'undefined'? 0: parseInt(req.query.page);
+    var page = typeof req.query.page === 'undefined' ? 0 : parseInt(req.query.page);
     // Used to query a people by the id. 
-    var idPeople = typeof req.query.idPeople === 'undefined'? 0: parseInt(req.query.idPeople); 
+    var idPeople = typeof req.query.idPeople === 'undefined' ? 0 : parseInt(req.query.idPeople);
 
-    new Promise((resolve,reject) => {
-        try{
-            if(listPeople){
+    new Promise((resolve, reject) => {
+        try {
+            if (listPeople) {
                 //SQL TO QUERY A LIST OF PEOPLE.
                 // I should use this code below if I wan to create pagination on the app, otherwise the list will be fix by the env file.
                 //const offset = helper.getOffset(page = 2, db.config.listPerPage);
                 var sql = "";
                 sql += " SELECT CONCAT(UPPER( ";
                 sql += "     LEFT(SUBSTRING_INDEX(p.name, ' ',-1), 1)), LOWER(SUBSTRING(SUBSTRING_INDEX(p.name, ' ',-1), 2)), ', ', UPPER( ";
-                sql += "     LEFT(SUBSTRING_INDEX(p.name, ' ', 1), 1)), LOWER(SUBSTRING(SUBSTRING_INDEX(p.name, ' ', 1), 2))) AS NAME, "; 
-                sql += "  pp.profession, "; 
+                sql += "     LEFT(SUBSTRING_INDEX(p.name, ' ', 1), 1)), LOWER(SUBSTRING(SUBSTRING_INDEX(p.name, ' ', 1), 2))) AS NAME, ";
+                sql += "  pp.profession, ";
                 sql += "     p.email, ";
-                sql += "     p.idpeople as id, "; 
-                sql += "     if(p.likes > 999, CONCAT(FORMAT(p.likes / 1000, 1), 'K'), p.likes) AS likes, "; 
+                sql += "     p.idpeople as id, ";
+                sql += "     if(p.likes > 999, CONCAT(FORMAT(p.likes / 1000, 1), 'K'), p.likes) AS likes, ";
                 sql += "     if(p.visualizations > 999, CONCAT(FORMAT(p.visualizations / 1000, 1), 'K'), p.visualizations) AS visualization ";
                 sql += " FROM people p ";
                 sql += " INNER JOIN profile pp ON (p.idpeople = pp.people_idpeople) ";
                 sql += " LIMIT ?,? ";
                 var peopleAmount = parseInt(db.config.listPerPage);
                 var params = [page, peopleAmount];
-                db.query(sql,params).then((result) => {
-                    resolve(res.send(result));   
+                db.query(sql, params).then((result) => {
+                    resolve(res.send(result));
                 });
-            }else{
+            } else {
                 //SQL TO QUERY A PEOPLE BY ID, NOT LIST. 
             }
 
-        }catch (err){
+        } catch (err) {
             console.log(err.message);
             reject(res.send(err.message));
         }
     });
-    
-//////////////////////////////////POST PEOPLE//////////////////////////////////
+
+    //////////////////////////////////POST PEOPLE//////////////////////////////////
 }).post((req, res) => {
 
-    new Promise((resolve,reject) => {
-        try{
-            
-            var sql = " SELECT ";
-                    sql += " p.idpeople, ";
-                    sql += " p.name, "; 
-                    sql += " p.email, "; 
-                    sql += " p.phonenumber, "; 
-                    sql += " p.password, "; 
-                    sql += " p.likes, "; 
-                    sql += " p.visualizations, ";
-                    sql += " p.tokenapi ";  
-            sql += " FROM people p ";
-            sql += " WHERE p.email=?";
-            var params = [req.query.name,req.query.email,req.query.phone,req.query.password,req.query.dateofbirth,req.query.dtactive,"S"];
-            db.query(sql,params).then((result) => {
-                if(result[0] === undefined){
-                    resolve(res.send("User Not Found!"));
-                    return;
-                }
-                helper.checkUser(req.query.password, result[0].password).then(response =>{
-                    if(response){
-                        jwt.sign({userid: result[0].idpeople, userEmail: result[0].email},db.config.token_key,(err,token)=>{
-                            if(!err){
-                                result[0].tokenapi = token;
-                                resolve(res.send(result));
-                            }else{
-                                console.log(err);
-                                resolve(res.send(err));
-                            }
-                        });
-                    }else{
-                        resolve(res.send("User Not Found!"));
+    new Promise((resolve, reject) => {
+        try {
+            const hashedPassword = req.query.password;
+
+            helper.hashPassword(hashedPassword).then((password) => {
+
+                var sql = " INSERT INTO people (NAME,email,phonenumber, PASSWORD,dtnascimento,dtactive,active) ";
+                sql += " (SELECT ?,?,?,?,?,?,? FROM people p ";
+                sql += " WHERE (SELECT COUNT(email) FROM people pp WHERE pp.email ='" + req.query.email + "') = 0 ";
+                sql += " LIMIT 1); ";
+
+                var params = [req.query.name, req.query.email, req.query.phone, password, req.query.dateofbirth, req.query.dtactive, "S"];
+
+                db.query(sql, params).then((result) => {    
+                    if (result.affectedRows === 0) {
+                        resolve(res.send("User Already Exists"));
+                        return;
                     }
+                    res.send("Sucessfully Registered");
                 }).catch(err => {
                     console.log(err);
-                    resolve(res.send(err.message+" file: login.js"));
+                    resolve(res.send(err));
                 });
-            }).catch(err => {
-                console.log(err);
-                resolve(res.send(err));
             });
-        }catch (err){
+        } catch (err) {
             console.log(err.message);
             reject(res.send(err.message));
         }
