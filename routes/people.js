@@ -58,16 +58,12 @@ routes.route("/people").get((req, res) => {
     new Promise((resolve, reject) => {
         try {
             const hashedPassword = req.query.password;
-
             helper.hashPassword(hashedPassword).then((password) => {
-
                 var sql = " INSERT INTO people (NAME,email,phonenumber, PASSWORD,dtnascimento,dtactive,active) ";
                 sql += " (SELECT ?,?,?,?,?,?,? FROM people p ";
                 sql += " WHERE (SELECT COUNT(email) FROM people pp WHERE pp.email ='" + req.query.email + "') = 0 ";
                 sql += " LIMIT 1); ";
-
                 var params = [req.query.name, req.query.email, req.query.phone, password, req.query.dateofbirth, req.query.dtactive, "S"];
-
                 db.query(sql, params).then((result) => {    
                     if (result.affectedRows === 0) {
                         resolve(res.send("User Already Exists"));
