@@ -43,7 +43,7 @@ routes.route("/login").post((req,res) => {
                             }
                         });
                     }else{
-                        resolve(res.send("User Not Found!"));
+                        resolve(res.send("User Not Found"));
                     }
                 }).catch(err => {
                     console.log(err);

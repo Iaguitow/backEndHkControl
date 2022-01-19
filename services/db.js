@@ -25,7 +25,6 @@ let query = (sql = "select * from people limit ?,? ", params = [0, 10]) => {
                     resolve(err);
                 } else {
                     const search_query = mysql.format(sql, params);
-                    console.log(search_query);
                     connection.query(search_query, (err, rows) => {
                         if (err) {
                             console.log(err);
