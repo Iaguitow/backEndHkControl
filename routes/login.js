@@ -1,14 +1,15 @@
 const db = require("../services/db.js");
 const helper = require("../helper.js");
 const jwt = require('jsonwebtoken');
+const gmail = require("../services/gmail.js");
 
 const express = require("express");
 const routes = express.Router();
 
-/*routes.use(function(req, res, next) {
+routes.use(function(req, res, next) {
     console.log(req.url, "@", Date.now());
     next();
-  });*/
+});
   
 //////////////////////////////////POST LOGIN//////////////////////////////////
 routes.route("/login").post((req,res) => {
@@ -59,8 +60,30 @@ routes.route("/login").post((req,res) => {
         }
     });
 //////////////////////////////////GET LOGIN//////////////////////////////////
-}).get((req, res) => {
-    res.send("hi, this is /routes/people/insert");
+});
+
+//////////////////////////////////POST LOGIN RECOVERY//////////////////////////////////
+routes.route("/login/recovery").get((req,res) => {
+    new Promise((resolve,reject)=>{
+        try {
+
+            const to = req.query.to;
+            const subject = req.query.subject;
+            const text = req.query.text;
+
+            gmail.sendEmail(to, subject, text).then(result => {
+                console.log("Email Sent: ",result);
+                resolve(res.send(result));
+
+            }).catch(err =>{
+                reject(res.send(err.message));
+
+            });
+            
+        } catch (error) {   
+            reject(res.send(error.message));
+        }
+    });
 });
 
 module.exports = routes;

@@ -11,7 +11,7 @@ const config = {
         port: process.env.DB_PORT
     },
     listPerPage: process.env.LIST_PER_PAGE,
-    token_key: process.env.API_KEY
+    token_key: process.env.API_KEY,
 }
 
 let query = (sql = "select * from people limit ?,? ", params = [0, 10]) => {
