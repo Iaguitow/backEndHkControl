@@ -63,23 +63,52 @@ routes.route("/login").post((req,res) => {
 });
 
 //////////////////////////////////POST LOGIN RECOVERY//////////////////////////////////
-routes.route("/login/recovery").get((req,res) => {
+routes.route("/login/recoverycode").put((req,res) => {
     new Promise((resolve,reject)=>{
         try {
+            var sql = " SELECT ";
+            sql += " p.idpeople, ";
+            sql += " p.name, "; 
+            sql += " p.email, "; 
+            sql += " p.phonenumber, "; 
+            sql += " p.password, "; 
+            sql += " p.likes, "; 
+            sql += " p.visualizations, ";
+            sql += " p.tokenapi ";  
+            sql += " FROM people p ";
+            sql += " WHERE p.email=?";
+            var params = [req.query.to];
 
-            const to = req.query.to;
-            const subject = req.query.subject;
-            const text = req.query.text;
+            db.query(sql,params).then((result) => {
+                if(result[0] === undefined){
+                    resolve(res.send("User Not Found"));
+                    return;
+                }
 
-            gmail.sendEmail(to, subject, text).then(result => {
-                console.log("Email Sent: ",result);
-                resolve(res.send(result));
+                const to = req.query.to;
+                const subject = req.query.subject;
+                let text = req.query.text;
+                let code = helper.generateResetCode(5);
+                text = text+code;
 
-            }).catch(err =>{
+                gmail.sendEmail(to, subject, text).then(result => {
+
+                    var sql = "UPDATE people set loginrecoverycode = ? where email = ?";
+                    var params = [code,to];
+
+                    db.query(sql,params).then(result => {
+                        resolve(res.send(result));
+                    }).catch(error => {
+                        reject(res.send(error.message));
+                    })
+
+                }).catch(err =>{
+                    reject(res.send(err.message));
+
+                });
+            }).catch(err => {
                 reject(res.send(err.message));
-
             });
-            
         } catch (error) {   
             reject(res.send(error.message));
         }

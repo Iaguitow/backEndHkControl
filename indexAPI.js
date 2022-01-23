@@ -1,8 +1,8 @@
 const express = require("express");
 const cors = require('cors');
 const app = express();
-const helper = require("./helper.js");
-const gmail = require("./services/gmail.js");
+//const helper = require("./helper.js");
+//const gmail = require("./services/gmail.js");
 
 const people = require("./routes/people.js");
 const login = require("./routes/login.js");

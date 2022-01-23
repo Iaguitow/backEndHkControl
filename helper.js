@@ -1,4 +1,3 @@
-const db = require("./services/db.js");
 const bcrypt = require('bcrypt');
 
 function getOffset(currentpage = 1, listPerPage){
@@ -10,6 +9,16 @@ function emptyOrRows(rows){
         return false;
     }
     return true;
+}
+
+function generateResetCode(length = 5){
+    const codePossibilities = "ABCDEFGHIJKLMNOPQRSTUVWYXZ0123456789";
+    let code = "";
+    for(let i =0;i<=length;i++){
+        let letterAt = Math.floor(Math.random()*(codePossibilities.length+1));
+        code += codePossibilities.charAt(letterAt);
+    }
+    return code;
 }
 
 async function checkUser(password,dbPassword){
@@ -29,5 +38,6 @@ module.exports = {
     getOffset,
     emptyOrRows,
     hashPassword,
-    checkUser
+    checkUser,
+    generateResetCode
 }

@@ -69,7 +69,7 @@ routes.route("/people").get((req, res) => {
                         resolve(res.send("User Already Exists"));
                         return;
                     }
-                    res.send("Sucessfully Registered");
+                    resolve(res.send("Sucessfully Registered"));
                 }).catch(err => {
                     console.log(err);
                     resolve(res.send(err));
