@@ -12,8 +12,7 @@ oAuth2Client.setCredentials({ refresh_token: REFRESH_TOKEN});
 
 async function sendEmail(to = "vieiras.igs@gmail.com",subject = "LOGIN RECOVERY", text = "1234"){
     try {
-        // I NEED TO DO A SELECT IN THE DATABASE TO CHECK IF THIS E-MAIL EXIST ON OUR SYSTEM. DO IT WHEN WRITE THE VERIFICATION CODE.
-        const acessToken = await oAuth2Client.getAccessToken();
+        const acessToken = await oAuth2Client.getAccessToken().catch(err =>{console.log(err.message); return;});
         const transport = nodemailer.createTransport({
             service:'gmail',
             auth:{
@@ -34,7 +33,7 @@ async function sendEmail(to = "vieiras.igs@gmail.com",subject = "LOGIN RECOVERY"
             html: "<h3>"+text+"<h3>",
         }
 
-        const result = await transport.sendMail(mailOptions);
+        const result = await transport.sendMail(mailOptions).catch(err =>{console.log(err.message); return;});
         return result;
 
     } catch (error) {

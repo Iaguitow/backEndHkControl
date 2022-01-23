@@ -85,24 +85,21 @@ routes.route("/login/recoverycode").put((req,res) => {
                     return;
                 }
 
-                const to = req.query.to;
-                const subject = req.query.subject;
                 let text = req.query.text;
-                let code = helper.generateResetCode(5);
+                let code = helper.generateResetCode(4);
                 text = text+code;
-
-                gmail.sendEmail(to, subject, text).then(result => {
-
+                
+                gmail.sendEmail(req.query.to, req.query.subject, text).then(result => {
                     var sql = "UPDATE people set loginrecoverycode = ? where email = ?";
-                    var params = [code,to];
-
+                    var params = [code,req.query.to];
                     db.query(sql,params).then(result => {
                         resolve(res.send(result));
                     }).catch(error => {
                         reject(res.send(error.message));
-                    })
+                    });
 
                 }).catch(err =>{
+                    console.log(err.message);
                     reject(res.send(err.message));
 
                 });
@@ -110,6 +107,36 @@ routes.route("/login/recoverycode").put((req,res) => {
                 reject(res.send(err.message));
             });
         } catch (error) {   
+            reject(res.send(error.message));
+        }
+    });
+});
+
+//////////////////////////////////POST PASSWORD RESET//////////////////////////////////
+routes.route("/login/resetpassword").post((req,res) => {
+    new Promise((resolve,reject)=>{
+        try {
+            helper.hashPassword(req.query.code).then(password =>{
+                var sql = " UPDATE people set password = ? ";
+                sql += " WHERE email=? and loginrecoverycode = ?";
+                var params = [password, req.query.email, req.query.code];
+    
+                db.query(sql,params).then((result) => {
+                    if(result.affectedRows === 0){
+                        resolve(res.send("User Not Found"));
+                        return;
+                    }
+                    resolve(res.send(result));
+    
+                }).catch(err => {
+                    reject(res.send(err.message));
+                });
+
+            }).catch(err =>{
+                reject(res.send(err.message));
+            });
+
+        } catch (error) {  
             reject(res.send(error.message));
         }
     });
