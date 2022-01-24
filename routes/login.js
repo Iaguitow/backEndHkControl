@@ -117,13 +117,13 @@ routes.route("/login/resetpassword").post((req,res) => {
     new Promise((resolve,reject)=>{
         try {
             helper.hashPassword(req.query.code).then(password =>{
-                var sql = " UPDATE people set password = ? ";
+                var sql = " UPDATE people set password = ?, loginrecoverycode = null ";
                 sql += " WHERE email=? and loginrecoverycode = ?";
                 var params = [password, req.query.email, req.query.code];
     
                 db.query(sql,params).then((result) => {
                     if(result.affectedRows === 0){
-                        resolve(res.send("User Not Found"));
+                        resolve(res.send("Code Not Found"));
                         return;
                     }
                     resolve(res.send(result));
