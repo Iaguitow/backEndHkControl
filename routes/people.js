@@ -1,5 +1,6 @@
 const db = require("../services/db.js");
 const helper = require("../helper.js");
+const gmail = require("../services/gmail");
 
 const express = require("express");
 const routes = express.Router();
@@ -69,7 +70,13 @@ routes.route("/people").get((req, res) => {
                         resolve(res.send("User Already Exists"));
                         return;
                     }
-                    resolve(res.send("Sucessfully Registered"));
+                    const text = "Here is your login information - Login: "+req.query.email+" Password: "+req.query.password;
+                    gmail.sendEmail(req.query.email, "LOGIN INFORMATION", text).then(result => {
+                        resolve(res.send("Sucessfully Registered"));
+                    }).catch(err =>{
+                        console.log(err.message);
+                        reject(res.send(err.message));
+                    });
                 }).catch(err => {
                     console.log(err);
                     resolve(res.send(err));
