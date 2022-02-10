@@ -23,9 +23,11 @@ routes.route("/login").post((req,res) => {
                     sql += " p.password, "; 
                     sql += " p.likes, "; 
                     sql += " p.visualizations, ";
-                    sql += " p.tokenapi ";  
+                    sql += " p.tokenapi, ";
+                    sql += " pr.profession ";  
             sql += " FROM people p ";
-            sql += " WHERE p.email=?";
+            sql += " LEFT JOIN profile pr ON (p.idpeople = pr.people_idpeople) "
+            sql += " WHERE p.email=? ";
             var params = [req.query.email];
             db.query(sql,params).then((result) => {
                 if(result[0] === undefined){
