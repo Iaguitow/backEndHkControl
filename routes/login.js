@@ -24,9 +24,14 @@ routes.route("/login").post((req,res) => {
                     sql += " p.likes, "; 
                     sql += " p.visualizations, ";
                     sql += " p.tokenapi, ";
-                    sql += " pr.profession ";  
+                    sql += " pr.profession, ";
+                    sql += " idgdriverfolders, ";
+                    sql += " gd.folderid, ";
+                    sql += " (SELECT gdf.fileid FROM gdriverfiles gdf WHERE gdf.fk_idgdriverfolder = gd.idgdriverfolders AND gdf.filetype = CONCAT(p.idpeople,'imgprofile')) AS fileidimgprofile, ";
+                    sql += " (SELECT gdf.fileid FROM gdriverfiles gdf WHERE gdf.fk_idgdriverfolder = gd.idgdriverfolders AND gdf.filetype = CONCAT(p.idpeople,'imgbackprofile')) AS fileidimgbackprofile "; 
             sql += " FROM people p ";
-            sql += " LEFT JOIN profile pr ON (p.idpeople = pr.people_idpeople) "
+            sql += " LEFT JOIN profile pr ON (p.idpeople = pr.people_idpeople) ";
+            sql += " LEFT JOIN gdriverfolders gd ON (p.idpeople = gd.people_idpeople) ";
             sql += " WHERE p.email=? ";
             var params = [req.query.email];
             db.query(sql,params).then((result) => {

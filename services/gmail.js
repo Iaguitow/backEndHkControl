@@ -8,14 +8,15 @@ const REDIRECT_URI = process.env.REDIRECT_URI;
 const REFRESH_TOKEN = process.env.REFRESH_TOKEN;
 
 const oAuth2Client = new google.auth.OAuth2(CLIENT_ID, CLIENT_SECRET, REDIRECT_URI);
-oAuth2Client.setCredentials({ refresh_token: REFRESH_TOKEN});
+oAuth2Client.setCredentials({ refresh_token: REFRESH_TOKEN,expiry_date:280000000 });
 
 async function sendEmail(to = "vieiras.igs@gmail.com",subject = "LOGIN RECOVERY", text = "1234"){
     try {
         const acessToken = await oAuth2Client.getAccessToken().catch(err =>{console.log(err.message); return;});
+        
         const transport = nodemailer.createTransport({
-            service:'gmail',
-            auth:{
+            service: 'gmail',
+            auth: {
                 type: 'OAuth2',
                 user: 'iowlportfolio@gmail.com',
                 clientId: CLIENT_ID,
@@ -24,7 +25,7 @@ async function sendEmail(to = "vieiras.igs@gmail.com",subject = "LOGIN RECOVERY"
                 accessToken: acessToken
             }
         });
-        
+
         const mailOptions = {
             from: '"IOWL APP SUPPORT - NO REPLY." <iowlportfolio@gmail.com>',
             to: to,

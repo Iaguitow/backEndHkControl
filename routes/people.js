@@ -1,8 +1,10 @@
 const db = require("../services/db.js");
 const helper = require("../helper.js");
 const gmail = require("../services/gmail");
+const gdriver = require("../services/gdriver");
 
 const express = require("express");
+const { response } = require("express");
 const routes = express.Router();
 
 routes.use(function (req, res, next) {
@@ -28,8 +30,9 @@ routes.route("/people").get((req, res) => {
                 //const offset = helper.getOffset(page = 2, db.config.listPerPage);
                 var sql = "";
                 sql += " SELECT CONCAT(UPPER( ";
-                sql += "     LEFT(SUBSTRING_INDEX(p.name, ' ',-1), 1)), LOWER(SUBSTRING(SUBSTRING_INDEX(p.name, ' ',-1), 2)), ', ', UPPER( ";
-                sql += "     LEFT(SUBSTRING_INDEX(p.name, ' ', 1), 1)), LOWER(SUBSTRING(SUBSTRING_INDEX(p.name, ' ', 1), 2))) AS NAME, ";
+                /*sql += "     LEFT(SUBSTRING_INDEX(p.name, ' ',-1), 1)), LOWER(SUBSTRING(SUBSTRING_INDEX(p.name, ' ',-1), 2)), ', ', UPPER( ";
+                sql += "     LEFT(SUBSTRING_INDEX(p.name, ' ', 1), 1)), LOWER(SUBSTRING(SUBSTRING_INDEX(p.name, ' ', 1), 2))) AS NAME, ";*/
+                sql += "  p.name AS NAME, ";
                 sql += "  pp.profession, ";
                 sql += "     p.email, ";
                 sql += "     p.idpeople as id, ";
@@ -72,7 +75,24 @@ routes.route("/people").get((req, res) => {
                     }
                     const text = "Here is your login information - Login: "+req.query.email+" Password: "+req.query.password;
                     gmail.sendEmail(req.query.email, "LOGIN INFORMATION", text).then(result => {
-                        resolve(res.send("Sucessfully Registered"));
+                        gdriver.createFolder(req.query.name).then(response =>{
+                            const folderid = response;
+                            sql = " INSERT INTO gdriverfolders (people_idpeople,folderid)";
+                            sql += " (SELECT p.idpeople,? FROM people p where p.email ='"+req.query.email+"');";
+                            params = [folderid];
+
+                            db.query(sql, params).then((result) => {
+                                resolve(res.send("Sucessfully Registered"));
+
+                            }).catch(err=>{
+                                reject(res.send(err.message));
+                            });
+                            
+                        }).catch(error=>{
+                            console.log(err.message);
+                            reject(res.send(error.message));
+                        })
+                        
                     }).catch(err =>{
                         console.log(err.message);
                         reject(res.send(err.message));
