@@ -67,7 +67,20 @@ async function createFolder(foldername){
     }
 }
 
+async function getFile(fileid){
+    try {
+        const response = await drive.files.get({
+            fileId:fileid,
+            fields:"*",
+        });
+        return response.data.thumbnailLink;
+    } catch (error) {
+        return error.message;
+    }
+}
+
 module.exports={
     uploadFile,
-    createFolder
+    createFolder,
+    getFile
 }

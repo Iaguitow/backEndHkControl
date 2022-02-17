@@ -2,7 +2,6 @@ const express = require("express");
 const routes = express.Router();
 const gdriver = require("../services/gdriver");
 const db = require("../services/db.js");
-const { JSON } = require("mysql/lib/protocol/constants/types");
 
 routes.use(function (req, res, next) {
     console.log(req.url, "@", Date.now());
@@ -42,6 +41,20 @@ routes.route("/gdrive").post((req, res) => {
                 reject(res.send(error.message));
             });
 
+        } catch (err) {
+            reject(res.send(err.message));
+        }
+    });
+});
+
+routes.route("/gdrive").get((req, res) => {
+    new Promise((resolve, reject) => {
+        try {
+            gdriver.getFile(req.query.fileid).then(function (response){
+                resolve(res.send(response));
+            }).catch(function (err) {
+                reject(res.send(err.message));
+            });
         } catch (err) {
             reject(res.send(err.message));
         }
