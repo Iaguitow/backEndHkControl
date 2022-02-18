@@ -39,5 +39,5 @@ module.exports = {
     emptyOrRows,
     hashPassword,
     checkUser,
-    generateResetCode
+    generateResetCode,
 }

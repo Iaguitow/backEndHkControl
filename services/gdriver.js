@@ -30,12 +30,13 @@ async function uploadFile(img, gdriveidfolder, filename, fileid){
             parents: [folderId]
         };
         var media = {
-            mimeType: 'image/png',
+            mimeType:'image/jpeg',
             body:bs
         };
         
         if(fileid !== null){
             response = await drive.files.update({
+
                 media:media,
                 fileId: fileid
             }).catch(function (err) {console.log(err)});

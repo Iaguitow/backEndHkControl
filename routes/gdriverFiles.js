@@ -2,10 +2,22 @@ const express = require("express");
 const routes = express.Router();
 const gdriver = require("../services/gdriver");
 const db = require("../services/db.js");
+const jwt = require('jsonwebtoken');
 
 routes.use(function (req, res, next) {
-    console.log(req.url, "@", Date.now());
-    next();
+    let TOKEN_API = req.headers.authorization;
+    if(TOKEN_API){
+        TOKEN_API = TOKEN_API.slice(7);
+        jwt.verify(TOKEN_API, db.config.token_key, (err, decode) =>{
+            if(err){
+                res.send(err);
+            }else{
+                next();
+            }
+        });
+    }else{
+        res.send("Acess Denied.");
+    }
 });
 
 routes.route("/gdrive").post((req, res) => {
