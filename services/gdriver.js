@@ -30,7 +30,7 @@ async function uploadFile(img, gdriveidfolder, filename, fileid){
             parents: [folderId]
         };
         var media = {
-            mimeType:'image/jpeg',
+            mimeType:'image/png',
             body:bs
         };
         
@@ -68,13 +68,24 @@ async function createFolder(foldername){
     }
 }
 
-async function getFile(fileid){
+async function getFile(fileIDS){
     try {
-        const response = await drive.files.get({
-            fileId:fileid,
-            fields:"*",
-        });
-        return response.data.thumbnailLink;
+        let allFilesData = [];
+        let response;
+
+        for(var i = 0; i<fileIDS.length;i++){
+            response = await drive.files.get({
+                fileId:fileIDS[i],
+                fields:"*",
+            });
+
+            allFilesData.push({
+                fileName:response.data.originalFilename,
+                fileLink:response.data.thumbnailLink
+            });
+        }
+
+        return allFilesData;
     } catch (error) {
         return error.message;
     }

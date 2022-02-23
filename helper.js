@@ -1,4 +1,7 @@
 const bcrypt = require('bcrypt');
+const db = require("./services/db");
+const jwt = require('jsonwebtoken');
+
 
 function getOffset(currentpage = 1, listPerPage){
     return (currentpage-1)*[listPerPage];
@@ -34,10 +37,27 @@ async function checkUser(password,dbPassword){
     return passwordHashed;
 }
 
+const checkApiToken = (req, res, next) => {   
+    let TOKEN_API = req.headers.authorization;
+    if(TOKEN_API){
+        TOKEN_API = TOKEN_API.slice(7);
+        jwt.verify(TOKEN_API, db.config.token_key, (err, decode) =>{
+            if(err){
+                res.send(err);
+            }else{
+                next();
+            }
+        });
+    }else{
+        res.send("Acess Denied.");
+    }
+};
+
 module.exports = {
     getOffset,
     emptyOrRows,
     hashPassword,
     checkUser,
     generateResetCode,
+    checkApiToken
 }

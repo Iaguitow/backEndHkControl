@@ -1,10 +1,5 @@
 const db = require("../services/db.js");
-const helper = require("../helper.js");
-const gmail = require("../services/gmail");
-const gdriver = require("../services/gdriver");
-
 const express = require("express");
-const { response } = require("express");
 const routes = express.Router();
 
 routes.use(function (req, res, next) {
@@ -57,56 +52,6 @@ routes.route("/people").get((req, res) => {
     });
 
     //////////////////////////////////POST PEOPLE//////////////////////////////////
-}).post((req, res) => {
-
-    new Promise((resolve, reject) => {
-        try {
-            const hashedPassword = req.query.password;
-            helper.hashPassword(hashedPassword).then((password) => {
-                var sql = " INSERT INTO people (NAME,email,phonenumber, PASSWORD,dtnascimento,dtactive,active,idgoogle) ";
-                sql += " (SELECT ?,?,?,?,?,?,?,? FROM people p ";
-                sql += " WHERE (SELECT COUNT(email) FROM people pp WHERE pp.email ='" + req.query.email + "') = 0 ";
-                sql += " LIMIT 1); ";
-                var params = [req.query.name, req.query.email, req.query.phone, password, req.query.dateofbirth, req.query.dtactive, "S",req.query.googleId];
-                db.query(sql, params).then((result) => {    
-                    if (result.affectedRows === 0) {
-                        resolve(res.send("User Already Exists"));
-                        return;
-                    }
-                    const text = "Here is your login information - Login: "+req.query.email+" Password: "+req.query.password;
-                    gmail.sendEmail(req.query.email, "LOGIN INFORMATION", text).then(result => {
-                        gdriver.createFolder(req.query.name).then(response =>{
-                            const folderid = response;
-                            sql = " INSERT INTO gdriverfolders (people_idpeople,folderid)";
-                            sql += " (SELECT p.idpeople,? FROM people p where p.email ='"+req.query.email+"');";
-                            params = [folderid];
-
-                            db.query(sql, params).then((result) => {
-                                resolve(res.send("Sucessfully Registered"));
-
-                            }).catch(err=>{
-                                reject(res.send(err.message));
-                            });
-                            
-                        }).catch(error=>{
-                            console.log(err.message);
-                            reject(res.send(error.message));
-                        })
-                        
-                    }).catch(err =>{
-                        console.log(err.message);
-                        reject(res.send(err.message));
-                    });
-                }).catch(err => {
-                    console.log(err);
-                    resolve(res.send(err));
-                });
-            });
-        } catch (err) {
-            console.log(err.message);
-            reject(res.send(err.message));
-        }
-    });
 });
 
 module.exports = routes;

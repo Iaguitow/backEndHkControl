@@ -2,28 +2,11 @@ const express = require("express");
 const routes = express.Router();
 const gdriver = require("../services/gdriver");
 const db = require("../services/db.js");
-const jwt = require('jsonwebtoken');
 
-routes.use(function (req, res, next) {
-    let TOKEN_API = req.headers.authorization;
-    if(TOKEN_API){
-        TOKEN_API = TOKEN_API.slice(7);
-        jwt.verify(TOKEN_API, db.config.token_key, (err, decode) =>{
-            if(err){
-                res.send(err);
-            }else{
-                next();
-            }
-        });
-    }else{
-        res.send("Acess Denied.");
-    }
-});
-
+//////////////////////////////////POST FILES//////////////////////////////////
 routes.route("/gdrive").post((req, res) => {
     new Promise((resolve, reject) => {
         try {
-
             var sql = " SELECT gdf.fileid FROM gdriverfiles gdf ";
                 sql += " INNER JOIN gdriverfolders gd ON (gd.idgdriverfolders = gdf.fk_idgdriverfolder) ";
                 sql += " WHERE gd.folderid = ? AND gdf.filetype = ? ";
@@ -59,10 +42,11 @@ routes.route("/gdrive").post((req, res) => {
     });
 });
 
+//////////////////////////////////GET FILES//////////////////////////////////
 routes.route("/gdrive").get((req, res) => {
     new Promise((resolve, reject) => {
         try {
-            gdriver.getFile(req.query.fileid).then(function (response){
+            gdriver.getFile(req.query.fileIDS).then(function (response){
                 resolve(res.send(response));
             }).catch(function (err) {
                 reject(res.send(err.message));

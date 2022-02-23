@@ -11,9 +11,10 @@ const gdrive = require("./routes/gdriverFiles.js");
 app.use(express.json({limit:"1mb"}));
 app.use(cors());
 
-app.use("/routes/", people);
 app.use("/routes/", login);
-app.use("/routes/", gdrive);
+app.use("/routes/", helper.checkApiToken, people);
+app.use("/routes/", helper.checkApiToken, gdrive);
+
 
 app.get("/",(req, res) => {
  //USED TO TESTE THE ROOT REQUEST.   
