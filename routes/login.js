@@ -34,13 +34,13 @@ routes.route("/login").post((req,res) => {
             sql += " LEFT JOIN profile pr ON (p.idpeople = pr.people_idpeople) ";
             sql += " LEFT JOIN gdriverfolders gd ON (p.idpeople = gd.people_idpeople) ";
             sql += " WHERE p.email=? ";
-            var params = [req.query.email];
+            var params = [req.body.email];
             db.query(sql,params).then((result) => {
                 if(result[0] === undefined){
                     resolve(res.send("User Not Found"));
                     return;
                 }
-                helper.checkUser(req.query.password, result[0].password).then(response =>{
+                helper.checkUser(req.body.password, result[0].password).then(response =>{
                     if(response){
                         jwt.sign({userid: result[0].idpeople, userEmail: result[0].email},db.config.token_key,(err,token)=>{
                             if(!err){
@@ -67,7 +67,6 @@ routes.route("/login").post((req,res) => {
             reject(res.send(err.message));
         }
     });
-//////////////////////////////////GET LOGIN//////////////////////////////////
 });
 
 //////////////////////////////////POST LOGIN RECOVERY//////////////////////////////////
@@ -124,10 +123,10 @@ routes.route("/login/recoverycode").put((req,res) => {
 routes.route("/login/resetpassword").post((req,res) => {
     new Promise((resolve,reject)=>{
         try {
-            helper.hashPassword(req.query.code).then(password =>{
+            helper.hashPassword(req.body.code).then(password =>{
                 var sql = " UPDATE people set password = ?, loginrecoverycode = null ";
                 sql += " WHERE email=? and loginrecoverycode = ?";
-                var params = [password, req.query.email, req.query.code];
+                var params = [password, req.body.email, req.body.code];
     
                 db.query(sql,params).then((result) => {
                     if(result.affectedRows === 0){
@@ -154,24 +153,25 @@ routes.route("/login/resetpassword").post((req,res) => {
 routes.route("/login/register").post((req, res) => {
     new Promise((resolve, reject) => {
         try {
-            const hashedPassword = req.query.password;
+            const hashedPassword = req.body.password;
+            
             helper.hashPassword(hashedPassword).then((password) => {
                 var sql = " INSERT INTO people (NAME,email,phonenumber, PASSWORD,dtnascimento,dtactive,active,idgoogle) ";
                 sql += " (SELECT ?,?,?,?,?,?,?,? FROM people p ";
-                sql += " WHERE (SELECT COUNT(email) FROM people pp WHERE pp.email ='" + req.query.email + "') = 0 ";
+                sql += " WHERE (SELECT COUNT(email) FROM people pp WHERE pp.email ='" + req.body.email + "') = 0 ";
                 sql += " LIMIT 1); ";
-                var params = [req.query.name, req.query.email, req.query.phone, password, req.query.dateofbirth, req.query.dtactive, "S",req.query.googleId];
+                var params = [req.body.name, req.body.email, req.body.phone, password, req.body.dateofbirth, req.body.dtactive, "S",req.body.googleId];
                 db.query(sql, params).then((result) => {    
                     if (result.affectedRows === 0) {
                         resolve(res.send("User Already Exists"));
                         return;
                     }
-                    const text = "Here is your login information - Login: "+req.query.email+" Password: "+req.query.password;
-                    gmail.sendEmail(req.query.email, "LOGIN INFORMATION", text).then(result => {
-                        gdriver.createFolder(req.query.name).then(response =>{
+                    const text = "Here is your login information - Login: "+req.body.email+" Password: "+req.body.password;
+                    gmail.sendEmail(req.body.email, "LOGIN INFORMATION", text).then(result => {
+                        gdriver.createFolder(req.body.name).then(response =>{
                             const folderid = response;
                             sql = " INSERT INTO gdriverfolders (people_idpeople,folderid)";
-                            sql += " (SELECT p.idpeople,? FROM people p where p.email ='"+req.query.email+"');";
+                            sql += " (SELECT p.idpeople,? FROM people p where p.email ='"+req.body.email+"');";
                             params = [folderid];
 
                             db.query(sql, params).then((result) => {
