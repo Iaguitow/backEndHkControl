@@ -156,7 +156,7 @@ routes.route("/login/register").post((req, res) => {
             const hashedPassword = req.body.password;
             
             helper.hashPassword(hashedPassword).then((password) => {
-                var sql = " INSERT INTO people (NAME,email,phonenumber, PASSWORD,dtnascimento,dtactive,active,idgoogle) ";
+                var sql = " INSERT INTO people (NAME,email,phonenumber, PASSWORD,dateofbirth,dtactive,active,idgoogle) ";
                 sql += " (SELECT ?,?,?,?,?,?,?,? FROM people p ";
                 sql += " WHERE (SELECT COUNT(email) FROM people pp WHERE pp.email ='" + req.body.email + "') = 0 ";
                 sql += " LIMIT 1); ";
