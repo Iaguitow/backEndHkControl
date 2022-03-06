@@ -7,6 +7,7 @@ const helper = require("./helper");
 const people = require("./routes/people.js");
 const login = require("./routes/login.js");
 const gdrive = require("./routes/gdriverFiles.js");
+const tags = require("./routes/tags.js");
 
 app.use(express.json({limit:"1mb"}));
 app.use(cors());
@@ -14,6 +15,7 @@ app.use(cors());
 app.use("/routes/", login);
 app.use("/routes/", helper.checkApiToken, people);
 app.use("/routes/", helper.checkApiToken, gdrive);
+app.use("/routes/", helper.checkApiToken, tags);
 
 
 app.get("/",(req, res) => {
