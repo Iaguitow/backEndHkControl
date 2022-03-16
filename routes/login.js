@@ -56,11 +56,11 @@ routes.route("/login").post((req,res) => {
                     }
                 }).catch(err => {
                     console.log(err);
-                    resolve(res.send(err.message+" file: login.js"));
+                    reject(res.send(err.message+" file: login.js"));
                 });
             }).catch(err => {
                 console.log(err);
-                resolve(res.send(err));
+                reject(res.send(err));
             });
         }catch (err){
             console.log(err.message);
