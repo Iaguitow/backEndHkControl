@@ -21,7 +21,7 @@ app.use("/routes/", helper.checkApiToken, profiles);
 
 
 app.get("/",(req, res) => {
- //USED TO TESTE THE ROOT REQUEST.ddf   
+ //USED TO TESTE THE ROOT REQUEST.   
 });
 
 app.listen(3000, () => (console.log("Server started sucessfully in Port:"+3000)));
