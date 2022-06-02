@@ -29,7 +29,7 @@ let query = (sql = "select * from people limit ?,? ", params = [0, 10]) => {
                         if (err) {
                             console.log(err);
                             resolve(err);
-                        } else {    
+                        } else {  
                             resolve(rows);
                         }
                         connection.release();

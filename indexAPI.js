@@ -19,9 +19,10 @@ app.use("/routes/", helper.checkApiToken, gdrive);
 app.use("/routes/", helper.checkApiToken, tags);
 app.use("/routes/", helper.checkApiToken, profiles);
 
-
 app.get("/",(req, res) => {
- //USED TO TEST THE ROOT REQUEST.   
+ //USED TO TEST THE ROOT REQUEST.
+ const test = {nome:"nomes"};
+ res.send(test);   
 });
 
 app.listen(3000, () => (console.log("Server started sucessfully in Port:"+3000)));

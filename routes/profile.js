@@ -15,16 +15,11 @@ routes.route("/profiles").post((req,res)=>{
             var sql = "";
             sql += " SELECT";  
             sql += "    pp.name,";
-            sql += "    CONCAT(ifnull(bg.title,''), ' | ' ,ifnull(bg.institute,'')) AS schoolTitle,";
-            sql += "    CONCAT(ifnull(pp.city,''),', ',ifnull(pp.country,'')) AS lives,";
             sql += "    pp.email,";
             sql += "    pp.phonenumber,";
-            sql += "    pf.profession,";
-            sql += "    pf.aboutyou,";
-            sql += "    pf.goal";
+            sql += " jc.categoryname as profession ";
             sql += " FROM people pp";
-            sql += "    LEFT JOIN profile pf ON (pf.people_idpeople = pp.idpeople)";
-            sql += "    LEFT JOIN bgschool bg ON (bg.people_idpeople = pp.idpeople)";
+            sql += " INNER JOIN jobcategory jc ON (jc.idjobcategory = pP.fk_idjobcategory) ";
             sql += " WHERE pp.idpeople = ?;";
 
             db.query(sql,params).then(result =>{

@@ -22,16 +22,14 @@ routes.route("/login").post((req,res) => {
                     sql += " p.email, "; 
                     sql += " p.phonenumber, "; 
                     sql += " p.password, "; 
-                    sql += " p.likes, "; 
-                    sql += " p.visualizations, ";
                     sql += " p.tokenapi, ";
-                    sql += " pr.profession, ";
+                    sql += " jc.categoryname as profession, ";
                     sql += " idgdriverfolders, ";
                     sql += " gd.folderid, ";
                     sql += " (SELECT gdf.fileid FROM gdriverfiles gdf WHERE gdf.fk_idgdriverfolder = gd.idgdriverfolders AND gdf.filetype = CONCAT(p.idpeople,'imgprofile')) AS fileidimgprofile, ";
                     sql += " (SELECT gdf.fileid FROM gdriverfiles gdf WHERE gdf.fk_idgdriverfolder = gd.idgdriverfolders AND gdf.filetype = CONCAT(p.idpeople,'imgbackprofile')) AS fileidimgbackprofile "; 
             sql += " FROM people p ";
-            sql += " LEFT JOIN profile pr ON (p.idpeople = pr.people_idpeople) ";
+            sql += " INNER JOIN jobcategory jc ON (jc.idjobcategory = p.fk_idjobcategory) ";
             sql += " LEFT JOIN gdriverfolders gd ON (p.idpeople = gd.people_idpeople) ";
             sql += " WHERE p.email=? ";
             var params = [req.body.email];
@@ -79,8 +77,6 @@ routes.route("/login/recoverycode").put((req,res) => {
             sql += " p.email, "; 
             sql += " p.phonenumber, "; 
             sql += " p.password, "; 
-            sql += " p.likes, "; 
-            sql += " p.visualizations, ";
             sql += " p.tokenapi ";  
             sql += " FROM people p ";
             sql += " WHERE p.email=?";
@@ -161,7 +157,7 @@ routes.route("/login/register").post((req, res) => {
                 sql += " WHERE (SELECT COUNT(email) FROM people pp WHERE pp.email ='" + req.body.email + "') = 0 ";
                 sql += " LIMIT 1); ";
                 var params = [req.body.name, req.body.email, req.body.phone, password, req.body.dateofbirth, req.body.dtactive, "S",req.body.googleId];
-                db.query(sql, params).then((result) => {    
+                db.query(sql, params).then((result) => {   
                     if (result.affectedRows === 0) {
                         resolve(res.send("User Already Exists"));
                         return;
