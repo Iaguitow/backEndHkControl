@@ -9,6 +9,7 @@ const login = require("./routes/login.js");
 const gdrive = require("./routes/gdriverFiles.js");
 const requests = require("./routes/requests.js");
 const profiles = require("./routes/profile.js");
+const tasks = require("./routes/Tasks.js")
 
 app.use(express.json({limit:"1mb"}));
 app.use(cors());
@@ -18,6 +19,7 @@ app.use("/routes/", helper.checkApiToken, people);
 app.use("/routes/", helper.checkApiToken, gdrive);
 app.use("/routes/", helper.checkApiToken, requests);
 app.use("/routes/", helper.checkApiToken, profiles);
+app.use("/routes/", helper.checkApiToken, tasks);
 
 app.get("/",(req, res) => {
  //USED TO TEST THE ROOT REQUEST.
