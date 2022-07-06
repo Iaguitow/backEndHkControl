@@ -18,7 +18,7 @@ function getResquests(req, res, next) {
             sql += " (SELECT CONCAT(SUBSTRING(pp.NAME,1,4),'.') FROM people pp WHERE pp.idpeople = pr.who_requested) AS whoresquested, ";
             sql += " TIME_FORMAT(pr.dtrequested,'%H:%i') AS dtrequested, ";
             sql += " pr.howmanyitem, "; 
-            sql += " r.resquestdescription AS requestdsc, ";
+            sql += " pr.finaldescription AS requestdsc, ";
             sql += " pr.roomnumber, "; 
             sql += " TIME_FORMAT(pr.dtrequestdone,'%H:%i') AS dtrequestdone, "; 
             sql += " p.name AS responsible, ";

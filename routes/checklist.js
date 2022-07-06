@@ -8,24 +8,22 @@ routes.use(function(req, res, next) {
     next();
 });
 
-routes.route("/tasks").get(getTasks);
+routes.route("/checklist").get(getChecklist);
 
-function getTasks(req, res, next) {
+function getChecklist(req, res, next) {
     new Promise((resolve,reject)=>{
         try {
             
             var params = [req.query.idpeople==null?req.body.idpeople:req.query.idpeople];
-            var sql = "SELECT idpeople_has_tasks as idTask,  IFNULL(f.floorname,'NO FLOOR') AS floorname, p.name AS portername, "; 
-            sql += "t.taskname, TIME_FORMAT(pt.timechecked,'%H:%i') AS timechecked, pt.checked, pp.name AS supervisorname FROM tasks t ";
-            sql += "INNER JOIN people_has_tasks pt ON (pt.fk_tasks = t.idtasks) ";
-            sql += "LEFT JOIN floors f ON (f.fk_porter_floor = pt.fk_people AND pt.fk_floor = f.idfloors) ";
-            sql += "INNER JOIN people p ON (p.idpeople=pt.fk_people) ";
-            sql += "INNER JOIN people pp ON (pp.idpeople=pt.fk_supervisor) ";
+            var sql = "SELECT pc.idpeople_has_checklist idcheck, cl.checkname, f.floorname, p.name as portername FROM people_has_checklist pc ";
+            sql += "INNER JOIN checklist cl ON (cl.idchecklist = pc.fk_checklist) ";
+            sql += "INNER JOIN floors f ON (pc.fk_floor = f.idfloors) ";
+            sql += "INNER JOIN people p ON (p.idpeople = pc.fk_people) ";
             sql += "WHERE p.idpeople = ? ";
-            sql += "ORDER BY f.idfloors ASC, pt.timechecked ASC";
+            sql += "ORDER BY pc.idpeople_has_checklist, cl.checkname ASC; ";
 
-            db.query(sql, params).then(requests =>{
-                resolve(res.send(requests));
+            db.query(sql, params).then(checklist =>{
+                resolve(res.send(checklist));
 
             }).catch(error => {
                 reject(res.send(error));
@@ -40,7 +38,7 @@ function getTasks(req, res, next) {
     });
 }
 
-routes.route("/update/tasks").post((req,res,next)=>{
+/*routes.route("/update/checklist").post((req,res,next)=>{
     new Promise((resolve,reject)=>{
         try {
             var params = [req.body.idTask];
@@ -71,6 +69,6 @@ routes.route("/update/tasks").post((req,res,next)=>{
     }).catch(error =>{
         reject(error);
     });
-},getTasks);
+},getTasks);*/
 
 module.exports = routes;
