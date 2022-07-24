@@ -8,8 +8,33 @@ routes.use(function(req, res, next) {
     next();
 });
 
-routes.route("/requests").get(getResquests);
+routes.route("/requestType").get(getRequestYpe);
 
+function getRequestYpe (req,res,next){
+    new Promise((resolve,reject)=>{
+        try {
+            var params = [req.body.idrequests];
+            var sql =  " SELECT t.idrequests, t.resquestdescription FROM requests t ";
+                sql += " ORDER BY t.resquestdescription ASC, "; 
+                sql += " SUBSTRING(t.resquestdescription,LOCATE('|',t.resquestdescription)+2,LENGTH(t.resquestdescription)) ASC; ";
+
+            db.query(sql, params).then(requestType =>{
+                resolve(res.send(requestType));
+
+            }).catch(error => {
+                reject(res.send(error));
+            });
+
+        } catch (error) {
+            reject(error);
+        }
+
+    }).catch(error =>{
+        reject(error);
+    });
+}
+
+routes.route("/requests").get(getResquests);
 function getResquests(req, res, next) {
     new Promise((resolve,reject)=>{
         try {
@@ -25,7 +50,7 @@ function getResquests(req, res, next) {
             sql += " if(pr.priority='c','CRITICAL','NORMAL') AS priority ";
             sql += " FROM people p ";
             sql += " INNER JOIN people_has_requests pr ON (p.idpeople = pr.fk_people) ";
-            sql += " INNER JOIN requests r ON (pr.fk_requests = r.idrequests) ";
+            sql += " LEFT JOIN requests r ON (pr.fk_requests = r.idrequests) ";
             sql += " WHERE ((date(pr.dtrequested) = CURDATE()) OR (pr.dtrequestdone IS NULL)) ";
             sql += " AND pr.fk_people = ? ";
             sql += " ORDER BY pr.priority ASC, pr.dtrequested ASC; ";
@@ -58,6 +83,42 @@ routes.route("/update/requests").post((req,res,next)=>{
                 sql += "SET dtrequestdone = NOW() ";
             };
             sql += " WHERE people_has_requests = ? ";
+
+            db.query(sql, params).then(requests =>{
+                if(requests.affectedRows > 0){
+                    next();
+                }
+
+            }).catch(error => {
+                reject(res.send(error));
+            });
+
+        } catch (error) {
+            reject(error);
+        }
+
+    }).catch(error =>{
+        reject(error);
+    });
+},getResquests);
+
+routes.route("/insert/new_request").post((req,res,next)=>{
+    new Promise((resolve,reject)=>{
+        try {
+            var requestObject = req.body.requestObj;
+            var profession = requestObject.profession;
+            if(profession == "HOUSE STEWARD" || profession == "PUBLIC AREA"){
+                var params = [requestObject.responsible,requestObject.idrequest,requestObject.who_requested,requestObject.roomnumber, requestObject.amount, requestObject.priority, requestObject.finaldescription];
+                var sql = " INSERT INTO people_has_requests (fk_people,fk_requests,dtrequested,who_requested,roomnumber,howmanyitem,priority,finaldescription) ";
+                    sql += " VALUES(?,?,NOW(),?,?,?,?,?); "; 
+            }else{
+                var params = [requestObject.idrequest,requestObject.who_requested,requestObject.roomnumber, requestObject.amount, requestObject.priority, requestObject.finaldescription, requestObject.roomnumber];
+                var sql = " INSERT INTO people_has_requests (fk_people,fk_requests,dtrequested,who_requested,roomnumber,howmanyitem,priority,finaldescription) ";
+                    sql += " (SELECT p.idpeople,?,NOW(),?,?,?,?,? FROM people p ";
+                    sql += " INNER JOIN floors f ON (p.idpeople = f.fk_porter_floor) ";
+                    sql += " INNER JOIN rooms r ON (f.idfloors = r.fk_floor) ";
+                    sql += " WHERE r.roomnumber = ?); ";
+            }
 
             db.query(sql, params).then(requests =>{
                 if(requests.affectedRows > 0){

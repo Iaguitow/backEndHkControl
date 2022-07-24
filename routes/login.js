@@ -119,7 +119,7 @@ routes.route("/login/recoverycode").put((req,res) => {
 routes.route("/login/resetpassword").post((req,res) => {
     new Promise((resolve,reject)=>{
         try {
-            helper.hashPassword(req.body.code).then(password =>{
+            helper.hashPassword(req.body.password).then(password =>{
                 var sql = " UPDATE people set password = ?, loginrecoverycode = null ";
                 sql += " WHERE email=? and loginrecoverycode = ?";
                 var params = [password, req.body.email, req.body.code];

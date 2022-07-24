@@ -17,7 +17,8 @@ routes.route("/profiles").post((req,res)=>{
             sql += "    pp.name,";
             sql += "    pp.email,";
             sql += "    pp.phonenumber,";
-            sql += " jc.categoryname as profession ";
+            sql += "    jc.categoryname as profession, ";
+            sql += "    pp.idpeople";
             sql += " FROM people pp";
             sql += " INNER JOIN jobcategory jc ON (jc.idjobcategory = pP.fk_idjobcategory) ";
             sql += " WHERE pp.idpeople = ?;";
