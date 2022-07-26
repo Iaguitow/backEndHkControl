@@ -11,6 +11,7 @@ const requests = require("./routes/requests.js");
 const profiles = require("./routes/profile.js");
 const tasks = require("./routes/tasks.js");
 const checklist = require("./routes/checklist.js");
+const rooms = require("./routes/rooms.js");
 
 app.use(express.json({limit:"1mb"}));
 app.use(cors());
@@ -22,6 +23,7 @@ app.use("/routes/requests/", helper.checkApiToken, requests);
 app.use("/routes/profiles/", helper.checkApiToken, profiles);
 app.use("/routes/tasks/", helper.checkApiToken, tasks);
 app.use("/routes/checklist/", helper.checkApiToken, checklist);
+app.use("/routes/rooms/", helper.checkApiToken, rooms);
 
 app.get("/routes/",(req, res) => {
  //USED TO TEST THE ROOT REQUEST.

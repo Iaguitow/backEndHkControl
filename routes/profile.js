@@ -29,7 +29,7 @@ routes.route("/profiles").post((req,res)=>{
                 reject(res.send(error));
             });
         } catch (error) {
-            reject(res.send(err.message));
+            reject(res.send(error.message));
         }
     });
 });

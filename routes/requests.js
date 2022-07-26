@@ -53,7 +53,7 @@ function getResquests(req, res, next) {
             sql += " LEFT JOIN requests r ON (pr.fk_requests = r.idrequests) ";
             sql += " WHERE ((date(pr.dtrequested) = CURDATE()) OR (pr.dtrequestdone IS NULL)) ";
             sql += " AND pr.fk_people = ? ";
-            sql += " ORDER BY pr.priority ASC, pr.dtrequested ASC; ";
+            sql += " ORDER BY pr.dtrequestdone ASC, pr.priority ASC, pr.dtrequested ASC; ";
 
             db.query(sql, params).then(requests =>{
                 resolve(res.send(requests));
@@ -107,10 +107,22 @@ routes.route("/insert/new_request").post((req,res,next)=>{
         try {
             var requestObject = req.body.requestObj;
             var profession = requestObject.profession;
-            if(profession == "HOUSE STEWARD" || profession == "PUBLIC AREA"){
+            var roomNumber = requestObject.roomnumber;
+            
+            if((profession == "HOUSE STEWARD" || profession == "PUBLIC AREA")){
                 var params = [requestObject.responsible,requestObject.idrequest,requestObject.who_requested,requestObject.roomnumber, requestObject.amount, requestObject.priority, requestObject.finaldescription];
                 var sql = " INSERT INTO people_has_requests (fk_people,fk_requests,dtrequested,who_requested,roomnumber,howmanyitem,priority,finaldescription) ";
-                    sql += " VALUES(?,?,NOW(),?,?,?,?,?); "; 
+                    sql += " VALUES(?,?,NOW(),?,?,?,?,?); ";
+
+            }else if(roomNumber == 0){
+                var params = [requestObject.idrequest,requestObject.who_requested,requestObject.roomnumber, requestObject.amount, requestObject.priority, requestObject.finaldescription, requestObject.roomnumber];
+                var sql = " INSERT INTO people_has_requests (fk_people,fk_requests,dtrequested,who_requested,roomnumber,howmanyitem,priority,finaldescription) ";
+                    sql += " (SELECT p.idpeople,?,NOW(),?,?,?,?,? FROM people p ";
+                    sql += " INNER JOIN floors f ON (p.idpeople = f.fk_porter_floor) ";
+                    sql += " INNER JOIN rooms r ON (f.idfloors = r.fk_floor) ";
+                    sql += " WHERE TRUE = TRUE ";
+                    sql += " GROUP BY p.idpeople); ";
+
             }else{
                 var params = [requestObject.idrequest,requestObject.who_requested,requestObject.roomnumber, requestObject.amount, requestObject.priority, requestObject.finaldescription, requestObject.roomnumber];
                 var sql = " INSERT INTO people_has_requests (fk_people,fk_requests,dtrequested,who_requested,roomnumber,howmanyitem,priority,finaldescription) ";
