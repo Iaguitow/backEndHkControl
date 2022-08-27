@@ -1,6 +1,55 @@
 const bcrypt = require('bcrypt');
 const db = require("./services/db");
 const jwt = require('jsonwebtoken');
+const pushNotification = require("./services/exponotification");
+
+function getPeopleTokenRequestResponsible(idRequest) {
+    new Promise((resolve, reject) => {
+        try {
+            var params = [idRequest];
+            var sql = " SELECT p.pushexpotoken, pr.finaldescription FROM people p ";
+            sql += " INNER JOIN people_has_requests pr ON (pr.fk_people = p.idpeople) ";  
+            sql += " WHERE pr.people_has_requests = ?; "; 
+
+            db.query(sql, params).then(peopleToken => {
+                resolve(pushNotification.sendPushNotification(peopleToken[0].pushexpotoken, peopleToken[0].finaldescription, title= "YOU HAVE A NEW REQUEST!"));
+
+            }).catch(error => {
+                reject(error);
+            });
+
+        } catch (error) {
+            reject(error);
+        }
+
+    }).catch(error => {
+        console.log(error);
+    });
+}
+
+function getPeopleTokenWhoRequested(idRequest) {
+    new Promise((resolve, reject) => {
+        try {
+            var params = [idRequest];
+            var sql = " SELECT p.pushexpotoken, pr.finaldescription FROM people p ";
+            sql += " INNER JOIN people_has_requests pr ON (pr.who_requested = p.idpeople) ";  
+            sql += " WHERE pr.people_has_requests = ?; "; 
+
+            db.query(sql, params).then(peopleToken => {
+                resolve(pushNotification.sendPushNotification(peopleToken[0].pushexpotoken, peopleToken[0].finaldescription, title= "YOUR REQUEST HAS BEEN UPDATED!"));
+
+            }).catch(error => {
+                reject(error);
+            });
+
+        } catch (error) {
+            reject(error);
+        }
+
+    }).catch(error => {
+        console.log(error);
+    });
+}
 
 
 function getOffset(currentpage = 1, listPerPage){
@@ -59,5 +108,7 @@ module.exports = {
     hashPassword,
     checkUser,
     generateResetCode,
-    checkApiToken
+    checkApiToken,
+    getPeopleTokenRequestResponsible,
+    getPeopleTokenWhoRequested
 }

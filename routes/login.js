@@ -24,6 +24,7 @@ routes.route("/login").post((req,res) => {
                     sql += " p.password, "; 
                     sql += " p.tokenapi, ";
                     sql += " jc.categoryname as profession, ";
+                    sql += " jc.categorylevel as joblevel,";
                     sql += " idgdriverfolders, ";
                     sql += " gd.folderid, ";
                     sql += " (SELECT gdf.fileid FROM gdriverfiles gdf WHERE gdf.fk_idgdriverfolder = gd.idgdriverfolders AND gdf.filetype = CONCAT(p.idpeople,'imgprofile')) AS fileidimgprofile, ";

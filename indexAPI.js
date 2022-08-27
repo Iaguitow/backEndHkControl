@@ -3,6 +3,7 @@ const cors = require('cors');
 const app = express();
 
 const helper = require("./helper");
+const pushNotification = require("./services/exponotification");
 
 const people = require("./routes/people.js");
 const login = require("./routes/login.js");
@@ -28,6 +29,7 @@ app.use("/routes/rooms/", helper.checkApiToken, rooms);
 app.get("/routes/",(req, res) => {
  //USED TO TEST THE ROOT REQUEST.
  const test = {nome:"nomes"};
+ pushNotification.sendPushNotification();
  res.send(test);   
 });
 

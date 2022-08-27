@@ -54,4 +54,64 @@ routes.route("/people").get((req, res) => {
     //////////////////////////////////POST PEOPLE//////////////////////////////////
 });
 
+routes.route("/getpeople").get(getPeople);
+function getPeople(req, res, next) {
+    new Promise((resolve, reject) => {
+        try {
+            var params = [req.body.idpeople];
+            var sql = "SELECT ";
+                    sql += " p.name, ";
+                    sql += " p.phonenumber, ";
+                    sql += " p.email, ";
+                    sql += " p.active, ";
+                    sql += " p.dtactive, ";
+                    sql += " p.dtdeactive, ";
+                    sql += " p.dateofbirth, ";
+                    sql += " p.pushexpotoken "; 
+                sql += " FROM people p ";
+                sql += " WHERE p.idpeople = ?; ";
+
+            db.query(sql, params).then(people => {
+                resolve(res.send(people));
+
+            }).catch(error => {
+                reject(res.send(error));
+            });
+
+        } catch (error) {
+            reject(error);
+        }
+
+    }).catch(error => {
+        console.log(error);
+    });
+}
+
+routes.route("/update/people").post((req,res,next)=>{
+    new Promise((resolve,reject)=>{
+        try {
+            var params = [req.body.pushExpoToken,req.body.idpeople];
+            var sql = "UPDATE people ";
+            sql += "set pushexpotoken = ?"
+            sql += " WHERE idpeople = ? ";
+
+            db.query(sql, params).then(people =>{
+                if(people.affectedRows > 0){
+                    next();
+                    return;
+                }
+
+            }).catch(error => {
+                reject(res.send(error));
+            });
+
+        } catch (error) {
+            reject(error);
+        }
+
+    }).catch(error =>{
+        reject(error);
+    });
+}, getPeople);
+
 module.exports = routes;
