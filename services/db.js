@@ -3,7 +3,7 @@ require("dotenv").config();
 
 const config = {
     db: {
-        connectionLimit: 100000,
+        connectionLimit: 100,
         host: process.env.DB_HOST,
         user: process.env.DB_USER,
         password: process.env.DB_PASSWORD,
@@ -15,7 +15,6 @@ const config = {
 }
 
 let query = (sql = "select * from people limit ?,? ", params = [0, 10]) => {
-
     return new Promise((resolve, reject) => {
         try {
             const db = mysql.createPool(config.db);
@@ -28,11 +27,13 @@ let query = (sql = "select * from people limit ?,? ", params = [0, 10]) => {
                     connection.query(search_query, (err, rows) => {
                         if (err) {
                             console.log(err);
+                            connection.destroy();
                             resolve(err);
-                        } else {  
+                        } else {
+                            connection.destroy();  
                             resolve(rows);
                         }
-                        connection.release();
+                        connection.destroy();
                     });
                 }
             });
