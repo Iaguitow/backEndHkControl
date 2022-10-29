@@ -9,7 +9,7 @@ function getPeopleTokenRequestResponsible(idRequest) {
             var params = [idRequest];
             var sql = " SELECT p.pushexpotoken, pr.finaldescription FROM people p ";
             sql += " INNER JOIN people_has_requests pr ON (pr.fk_people = p.idpeople) ";  
-            sql += " WHERE pr.people_has_requests = ?; "; 
+            sql += " WHERE pr.people_has_requests = ? and pr.fk_people != pr.who_requested; "; 
 
             db.query(sql, params).then(peopleToken => {
                 resolve(pushNotification.sendPushNotification(peopleToken[0].pushexpotoken, peopleToken[0].finaldescription, title= "YOU HAVE A NEW REQUEST!"));
@@ -33,7 +33,7 @@ function getPeopleTokenWhoRequested(idRequest) {
             var params = [idRequest];
             var sql = " SELECT p.pushexpotoken, pr.finaldescription FROM people p ";
             sql += " INNER JOIN people_has_requests pr ON (pr.who_requested = p.idpeople) ";  
-            sql += " WHERE pr.people_has_requests = ?; "; 
+            sql += " WHERE pr.people_has_requests = ? and pr.who_requested != pr.fk_people "; 
 
             db.query(sql, params).then(peopleToken => {
                 resolve(pushNotification.sendPushNotification(peopleToken[0].pushexpotoken, peopleToken[0].finaldescription, title= "YOUR REQUEST HAS BEEN UPDATED!"));
