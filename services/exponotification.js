@@ -7,7 +7,8 @@ function sendPushNotification(requestResponsibleToken, PushDescription, title) {
     const pushAccessToken = process.env.PUSH_NOTIFICAITON_ACCESS_TOKEN;
     let expo = new Expo({ accessToken:  pushAccessToken});
 
-    let somePushTokens = [requestResponsibleToken];
+    let somePushTokens = requestResponsibleToken;
+    //let somePushTokens = [requestResponsibleToken];
     // Create the messages that you want to send to clients
     let messages = [];
     for (let pushToken of somePushTokens) {

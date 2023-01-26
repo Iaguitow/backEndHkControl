@@ -51,6 +51,37 @@ function getPeopleTokenWhoRequested(idRequest) {
     });
 }
 
+function getPeopleTokenWhoRequestedANDresponsible(idRequest, fk_whocancelled) {
+    new Promise((resolve, reject) => {
+        try {
+
+            var params = [idRequest];
+
+            var sql = " SELECT  ";
+                sql += " pr.finaldescription, ";
+                sql += " (SELECT pushexpotoken FROM people p1 WHERE (p1.idpeople = pr.who_requested)) pushtokenWhoRequested, "; 
+                sql += " (SELECT pushexpotoken FROM people p2 WHERE (p2.idpeople = pr.fk_people)) pushtokenResponsible "; 
+            sql += " FROM people p ";
+            sql += " INNER JOIN people_has_requests pr ON (pr.who_requested = p.idpeople and pr.who_requested != "+ fk_whocancelled +") ";
+            sql += " WHERE pr.people_has_requests = ?"; 
+
+            db.query(sql, params).then(peopleToken => {
+                var tokens = [peopleToken[0].pushtokenWhoRequested,peopleToken[0].pushtokenResponsible]
+                resolve(pushNotification.sendPushNotification(tokens, peopleToken[0].finaldescription, title= "YOUR REQUEST HAS BEEN CANCELED!"));
+
+            }).catch(error => {
+                reject(error);
+            });
+
+        } catch (error) {
+            reject(error);
+        }
+
+    }).catch(error => {
+        console.log(error);
+    });
+}
+
 
 function getOffset(currentpage = 1, listPerPage){
     return (currentpage-1)*[listPerPage];
@@ -98,7 +129,7 @@ const checkApiToken = (req, res, next) => {
             }
         });
     }else{
-        res.send("Acess Denied.");
+        res.send("Access Denied.");
     }
 };
 
@@ -110,5 +141,6 @@ module.exports = {
     generateResetCode,
     checkApiToken,
     getPeopleTokenRequestResponsible,
-    getPeopleTokenWhoRequested
+    getPeopleTokenWhoRequested,
+    getPeopleTokenWhoRequestedANDresponsible
 }

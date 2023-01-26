@@ -46,11 +46,19 @@ function getResquests(req, res, next) {
 
                 var params = [true,true];
                 
-                if (joblevel.toString().includes("PS", "M", "CO")) {
+                if (joblevel.toString().includes("PS", "HM", "CO")) {
                     
                     var sql = " SELECT ";
                     sql += " pr.people_has_requests AS idresquests, ";
+                    sql += " IF(pr.dtrequestdone IS NULL,IF(TIMESTAMPDIFF(MINUTE, pr.dtrequested, NOW()) > 60, "; 
+                    sql += " CONCAT(TIMESTAMPDIFF(HOUR, pr.dtrequested, NOW()),' Hours'), "; 
+                    sql += " CONCAT(TIMESTAMPDIFF(MINUTE, pr.dtrequested, NOW()),' Min')),NULL) AS requesttimedealyed, ";
+                    sql += " p.phonenumber AS responsiblePhoneNumber, ";
+                    sql += " concat(DATE_FORMAT(rc.dtcancellation,'%d/%m/%Y'),' ',TIME_FORMAT(rc.dtcancellation,'%H:%i')) as dtcancellation, ";
+                    sql += " rc.reason, ";
+                    sql += " p.phonenumber AS responsiblePhoneNumber, ";
                     sql += " (SELECT CONCAT(SUBSTRING(pp.NAME,1,4),'.') FROM people pp WHERE pp.idpeople = pr.who_requested) AS whoresquested, ";
+                    sql += " (SELECT pp.NAME FROM people pp WHERE pp.idpeople = pr.who_requested) AS fullwhoresquested, ";
                     sql += " TIME_FORMAT(pr.dtrequested,'%H:%i') AS timeRequested, ";
                     sql += " pr.howmanyitem, ";
                     sql += " pr.finaldescription AS requestdsc, ";
@@ -68,36 +76,38 @@ function getResquests(req, res, next) {
                     sql += " p.name AS responsible, ";
                     sql += " if(pr.priority='c','CRITICAL','NORMAL') AS priority, ";
                     sql += " DATE_FORMAT(pr.dtrequested,'%d/%m/%Y') AS dtrequested, ";
+                    sql += " concat(DATE_FORMAT(pr.dtrequested,'%d/%m/%Y'),' ',TIME_FORMAT(pr.dtrequested,'%H:%i')) as fulldtrequest, ";
                     sql += " DATE_FORMAT(pr.dtrequestdone,'%d/%m/%Y') AS dtrequestdone, ";
+                    sql += " concat(DATE_FORMAT(pr.dtrequestdone,'%d/%m/%Y'),' ',TIME_FORMAT(pr.dtrequestdone,'%H:%i')) as fulldtrequestdone, ";
                     sql += " WEEK(pr.dtrequested,1) AS requestWeek, ";
 
                     sql += " (SELECT 	CONCAT(DATE_FORMAT(MIN(DATE(phr.dtrequested)),'%d/%m/%Y'),' - ',DATE_FORMAT(MAX(DATE(phr.dtrequested)),'%d/%m/%Y')) FROM people_has_requests phr ";
                     sql += " WHERE week(phr.dtrequested,1) = week(pr.dtrequested,1) GROUP BY WEEK(phr.dtrequested,1)) AS dtrequestWeek, ";
 
                     sql += " IFNULL((SELECT 	COUNT(1) FROM people_has_requests phr ";
-                    sql += " WHERE week(phr.dtrequested,1) = week(pr.dtrequested,1) GROUP BY WEEK(phr.dtrequested,1)),0) AS requestsPerWeek, ";
+                    sql += " WHERE week(phr.dtrequested,1) = week(pr.dtrequested,1) and phr.canceled = 'N' GROUP BY WEEK(phr.dtrequested,1)),0) AS requestsPerWeek, ";
 
                     sql += " IFNULL((SELECT 	COUNT(*) FROM people_has_requests phr ";
-                    sql += " WHERE DATE(phr.dtrequested) = DATE(pr.dtrequested) AND phr.dtrequestdone IS NULL GROUP BY DATE(phr.dtrequested)),0) AS requestsPerDayOpens, ";
+                    sql += " WHERE DATE(phr.dtrequested) = DATE(pr.dtrequested) AND phr.dtrequestdone IS NULL  and phr.canceled = 'N' GROUP BY DATE(phr.dtrequested)),0) AS requestsPerDayOpens, ";
 
                     sql += " IFNULL((SELECT 	COUNT(*) FROM people_has_requests phr ";
-                    sql += " WHERE DATE(phr.dtrequested) = DATE(pr.dtrequested) AND phr.dtrequestdone IS NOT NULL GROUP BY DATE(phr.dtrequested)),0) AS requestsPerDayConcluded,";
+                    sql += " WHERE DATE(phr.dtrequested) = DATE(pr.dtrequested) AND phr.dtrequestdone IS NOT NULL  and phr.canceled = 'N' GROUP BY DATE(phr.dtrequested)),0) AS requestsPerDayConcluded,";
 
                     sql += " TRUNCATE(( ";
                     sql += " ((IFNULL((SELECT 	COUNT(*) FROM people_has_requests phr ";
-                    sql += " WHERE DATE(phr.dtrequested) = DATE(pr.dtrequested) AND phr.dtrequestdone IS NOT NULL GROUP BY DATE(phr.dtrequested)),0))/ ";
+                    sql += " WHERE DATE(phr.dtrequested) = DATE(pr.dtrequested) AND phr.dtrequestdone IS NOT NULL  and phr.canceled = 'N' GROUP BY DATE(phr.dtrequested)),0))/ ";
                     sql += " IFNULL((SELECT 	COUNT(*) FROM people_has_requests phr ";
-                    sql += " WHERE DATE(phr.dtrequested) = DATE(pr.dtrequested) GROUP BY DATE(phr.dtrequested)), ( Ifnull((SELECT COUNT(*) ";
+                    sql += " WHERE DATE(phr.dtrequested) = DATE(pr.dtrequested)  and phr.canceled = 'N' GROUP BY DATE(phr.dtrequested)), ( Ifnull((SELECT COUNT(*) ";
                     sql += " FROM   people_has_requests phr ";
                     sql += " WHERE  DATE(phr.dtrequested) = DATE(pr.dtrequested) ";
-                    sql += "        AND phr.dtrequestdone IS NOT NULL ";
+                    sql += "        AND phr.dtrequestdone IS NOT NULL  and phr.canceled = 'N'";
                     sql += " GROUP  BY DATE(phr.dtrequested)), 0)))) ";
                     sql += " )*100,0) AS percentagemConcluded, ";
 
                     sql += " Ifnull((SELECT COUNT(*) ";
                     sql += " FROM   people_has_requests phr ";
                     sql += " WHERE  DATE(phr.dtrequested) = DATE(pr.dtrequested) ";
-                    sql += " AND	 phr.fk_people = pr.fk_people ";
+                    sql += " AND	 phr.fk_people = pr.fk_people  and phr.canceled = 'N' ";
                     sql += "        AND phr.dtrequestdone IS NOT NULL ";
                     sql += " GROUP  BY DATE(phr.dtrequested),phr.fk_people), 0) ";
                     sql += " AS requestsPerDayPorterConcluded, ";
@@ -105,7 +115,7 @@ function getResquests(req, res, next) {
                     sql += " Ifnull((SELECT COUNT(*) ";
                     sql += " FROM   people_has_requests phr ";
                     sql += " WHERE  DATE(phr.dtrequested) = DATE(pr.dtrequested) ";
-                    sql += " AND	 phr.fk_people = pr.fk_people ";
+                    sql += " AND	 phr.fk_people = pr.fk_people  and phr.canceled = 'N' ";
                     sql += "        AND phr.dtrequestdone IS NULL ";
                     sql += " GROUP  BY DATE(phr.dtrequested),phr.fk_people), 0) ";
                     sql += " AS requestsPerDayPorterOpens ";
@@ -113,11 +123,13 @@ function getResquests(req, res, next) {
                     sql += " FROM people p ";
                     sql += " INNER JOIN people_has_requests pr ";
                     sql += " ON (p.idpeople = pr.fk_people) ";
+                    sql += " LEFT JOIN requestreasoncancellation rc ON (pr.people_has_requests = rc.fk_request) ";
                     sql += " LEFT JOIN requests r ";
                     sql += " ON (pr.fk_requests = r.idrequests) ";
-                    sql += " WHERE ((month(pr.dtrequested) >= month(CURDATE())-1) OR (WEEK(pr.dtrequestdone,1) >= WEEK(CURDATE(),1)-1)) ";
+                    // sql += " WHERE ((month(pr.dtrequested) >= month(CURDATE())-1) OR (WEEK(pr.dtrequestdone,1) >= WEEK(CURDATE(),1)-1)) ";
+                    sql += " WHERE ROUND(DATEDIFF(CURDATE(), pr.dtrequested)/7,0) < 15 ";
                     sql += " and ? = ? ";
-                    sql += " ORDER BY WEEK(pr.dtrequested,1) DESC, DATE(pr.dtrequested) DESC, p.name ASC, pr.dtrequestdone ASC, pr.priority ASC; ";
+                    sql += " ORDER BY YEAR(pr.dtrequested) DESC, WEEK(pr.dtrequested,1) DESC, DATE(pr.dtrequested) DESC, p.name ASC, pr.dtrequestdone ASC, pr.priority ASC; ";
 
                     db.query(sql, params).then(requests => {
                         resolve(res.send(requests));
@@ -130,16 +142,26 @@ function getResquests(req, res, next) {
 
                     var params = [req.query.idpeople == null ? req.body.idpeople : req.query.idpeople];
                     var sql = "SELECT pr.people_has_requests AS idresquests,";
+                    sql += " IF(pr.dtrequestdone IS NULL,IF(TIMESTAMPDIFF(MINUTE, pr.dtrequested, NOW()) > 60, "; 
+                    sql += " CONCAT(TIMESTAMPDIFF(HOUR, pr.dtrequested, NOW()),' Hours'), "; 
+                    sql += " CONCAT(TIMESTAMPDIFF(MINUTE, pr.dtrequested, NOW()),' Min')),NULL) AS requesttimedealyed, ";
+                    sql += " p.phonenumber AS responsiblePhoneNumber, ";
+                    sql += " concat(DATE_FORMAT(rc.dtcancellation,'%d/%m/%Y'),' ',TIME_FORMAT(rc.dtcancellation,'%H:%i')) as dtcancellation, ";
+                    sql += " rc.reason, ";
                     sql += " (SELECT CONCAT(SUBSTRING(pp.NAME,1,4),'.') FROM people pp WHERE pp.idpeople = pr.who_requested) AS whoresquested, ";
+                    sql += " (SELECT pp.NAME FROM people pp WHERE pp.idpeople = pr.who_requested) AS fullwhoresquested, ";
                     sql += " TIME_FORMAT(pr.dtrequested,'%H:%i') AS dtrequested, ";
+                    sql += " concat(DATE_FORMAT(pr.dtrequested,'%d/%m/%Y'),' ',TIME_FORMAT(pr.dtrequested,'%H:%i')) as fulldtrequest, ";
                     sql += " pr.howmanyitem, ";
                     sql += " pr.finaldescription AS requestdsc, ";
                     sql += " pr.roomnumber, ";
                     sql += " TIME_FORMAT(pr.dtrequestdone,'%H:%i') AS dtrequestdone, ";
+                    sql += " concat(DATE_FORMAT(pr.dtrequestdone,'%d/%m/%Y'),' ',TIME_FORMAT(pr.dtrequestdone,'%H:%i')) as fulldtrequestdone, ";
                     sql += " p.name AS responsible, ";
                     sql += " if(pr.priority='c','CRITICAL','NORMAL') AS priority ";
                     sql += " FROM people p ";
                     sql += " INNER JOIN people_has_requests pr ON (p.idpeople = pr.fk_people) ";
+                    sql += " LEFT JOIN requestreasoncancellation rc ON (pr.people_has_requests = rc.fk_request) ";
                     sql += " LEFT JOIN requests r ON (pr.fk_requests = r.idrequests) ";
                     sql += " WHERE ((date(pr.dtrequested) = CURDATE()) OR (pr.dtrequestdone IS NULL)) ";
                     sql += " AND pr.fk_people = ? ";
