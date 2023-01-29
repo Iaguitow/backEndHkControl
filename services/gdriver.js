@@ -74,13 +74,12 @@ async function getFile(fileIDS){
         let response;
         
         for(var i = 0; i<fileIDS.length;i++){
-            
             if(!(fileIDS[i] === "null")){
                 response = await drive.files.get({
                     fileId:fileIDS[i],
                     fields:"*",
                 });
-
+            
                 allFilesData.push({
                     fileName:response.data.originalFilename,
                     fileLink:response.data.thumbnailLink

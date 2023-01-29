@@ -25,12 +25,14 @@ routes.route("/login").post((req,res) => {
                     sql += " p.tokenapi, ";
                     sql += " jc.categoryname as profession, ";
                     sql += " jc.categorylevel as joblevel,";
+                    sql += " dp.departmentkey as departmentlevel, ";
                     sql += " idgdriverfolders, ";
                     sql += " gd.folderid, ";
                     sql += " (SELECT gdf.fileid FROM gdriverfiles gdf WHERE gdf.fk_idgdriverfolder = gd.idgdriverfolders AND gdf.filetype = CONCAT(p.idpeople,'imgprofile')) AS fileidimgprofile, ";
                     sql += " (SELECT gdf.fileid FROM gdriverfiles gdf WHERE gdf.fk_idgdriverfolder = gd.idgdriverfolders AND gdf.filetype = CONCAT(p.idpeople,'imgbackprofile')) AS fileidimgbackprofile "; 
             sql += " FROM people p ";
             sql += " INNER JOIN jobcategory jc ON (jc.idjobcategory = p.fk_idjobcategory) ";
+            sql += " INNER JOIN departments dp ON (dp.iddepartments = jc.iddepartment) ";
             sql += " LEFT JOIN gdriverfolders gd ON (p.idpeople = gd.people_idpeople) ";
             sql += " WHERE p.email=? ";
             var params = [req.body.email];

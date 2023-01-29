@@ -55,6 +55,7 @@ function getResquests(req, res, next) {
                     sql += " CONCAT(TIMESTAMPDIFF(MINUTE, pr.dtrequested, NOW()),' Min')),NULL) AS requesttimedealyed, ";
                     sql += " p.phonenumber AS responsiblePhoneNumber, ";
                     sql += " concat(DATE_FORMAT(rc.dtcancellation,'%d/%m/%Y'),' ',TIME_FORMAT(rc.dtcancellation,'%H:%i')) as dtcancellation, ";
+                    sql += " (SELECT pp.name FROM people pp WHERE pp.idpeople = rc.fk_whocancelled) AS whocancelled,";
                     sql += " rc.reason, ";
                     sql += " p.phonenumber AS responsiblePhoneNumber, ";
                     sql += " (SELECT CONCAT(SUBSTRING(pp.NAME,1,4),'.') FROM people pp WHERE pp.idpeople = pr.who_requested) AS whoresquested, ";
@@ -141,12 +142,14 @@ function getResquests(req, res, next) {
                 }else{
 
                     var params = [req.query.idpeople == null ? req.body.idpeople : req.query.idpeople];
+
                     var sql = "SELECT pr.people_has_requests AS idresquests,";
                     sql += " IF(pr.dtrequestdone IS NULL,IF(TIMESTAMPDIFF(MINUTE, pr.dtrequested, NOW()) > 60, "; 
                     sql += " CONCAT(TIMESTAMPDIFF(HOUR, pr.dtrequested, NOW()),' Hours'), "; 
                     sql += " CONCAT(TIMESTAMPDIFF(MINUTE, pr.dtrequested, NOW()),' Min')),NULL) AS requesttimedealyed, ";
                     sql += " p.phonenumber AS responsiblePhoneNumber, ";
                     sql += " concat(DATE_FORMAT(rc.dtcancellation,'%d/%m/%Y'),' ',TIME_FORMAT(rc.dtcancellation,'%H:%i')) as dtcancellation, ";
+                    sql += " (SELECT pp.name FROM people pp WHERE pp.idpeople = rc.fk_whocancelled) AS whocancelled,";
                     sql += " rc.reason, ";
                     sql += " (SELECT CONCAT(SUBSTRING(pp.NAME,1,4),'.') FROM people pp WHERE pp.idpeople = pr.who_requested) AS whoresquested, ";
                     sql += " (SELECT pp.NAME FROM people pp WHERE pp.idpeople = pr.who_requested) AS fullwhoresquested, ";
@@ -164,7 +167,14 @@ function getResquests(req, res, next) {
                     sql += " LEFT JOIN requestreasoncancellation rc ON (pr.people_has_requests = rc.fk_request) ";
                     sql += " LEFT JOIN requests r ON (pr.fk_requests = r.idrequests) ";
                     sql += " WHERE ((date(pr.dtrequested) = CURDATE()) OR (pr.dtrequestdone IS NULL)) ";
-                    sql += " AND pr.fk_people = ? ";
+
+                    if(joblevel.includes("RA","RS")){
+                        sql += " AND pr.who_requested = ? ";
+                        
+                    }else{  
+                        sql += " AND pr.fk_people = ? ";
+                    }   
+                    
                     sql += " ORDER BY pr.dtrequestdone ASC, pr.priority ASC, pr.dtrequested ASC; ";
         
                     db.query(sql, params).then(requests => {
