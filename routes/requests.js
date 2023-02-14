@@ -50,9 +50,11 @@ function getResquests(req, res, next) {
                     
                     var sql = " SELECT ";
                     sql += " pr.people_has_requests AS idresquests, ";
-                    sql += " IF(pr.dtrequestdone IS NULL,IF(TIMESTAMPDIFF(MINUTE, pr.dtrequested, NOW()) > 60, "; 
+
+                    sql += " IF(rc.dtcancellation IS NOT NULL,NULL,IF(pr.dtrequestdone IS NULL,IF(TIMESTAMPDIFF(MINUTE, pr.dtrequested, NOW()) > 60, "; 
                     sql += " CONCAT(TIMESTAMPDIFF(HOUR, pr.dtrequested, NOW()),' Hours'), "; 
-                    sql += " CONCAT(TIMESTAMPDIFF(MINUTE, pr.dtrequested, NOW()),' Min')),NULL) AS requesttimedealyed, ";
+                    sql += " CONCAT(TIMESTAMPDIFF(MINUTE, pr.dtrequested, NOW()),' Min')),NULL)) AS requesttimedealyed, ";
+
                     sql += " p.phonenumber AS responsiblePhoneNumber, ";
                     sql += " concat(DATE_FORMAT(rc.dtcancellation,'%d/%m/%Y'),' ',TIME_FORMAT(rc.dtcancellation,'%H:%i')) as dtcancellation, ";
                     sql += " (SELECT pp.name FROM people pp WHERE pp.idpeople = rc.fk_whocancelled) AS whocancelled,";
@@ -144,9 +146,11 @@ function getResquests(req, res, next) {
                     var params = [req.query.idpeople == null ? req.body.idpeople : req.query.idpeople];
 
                     var sql = "SELECT pr.people_has_requests AS idresquests,";
-                    sql += " IF(pr.dtrequestdone IS NULL,IF(TIMESTAMPDIFF(MINUTE, pr.dtrequested, NOW()) > 60, "; 
+
+                    sql += " IF(rc.dtcancellation IS NOT NULL,NULL,IF(pr.dtrequestdone IS NULL,IF(TIMESTAMPDIFF(MINUTE, pr.dtrequested, NOW()) > 60, "; 
                     sql += " CONCAT(TIMESTAMPDIFF(HOUR, pr.dtrequested, NOW()),' Hours'), "; 
-                    sql += " CONCAT(TIMESTAMPDIFF(MINUTE, pr.dtrequested, NOW()),' Min')),NULL) AS requesttimedealyed, ";
+                    sql += " CONCAT(TIMESTAMPDIFF(MINUTE, pr.dtrequested, NOW()),' Min')),NULL)) AS requesttimedealyed, ";
+
                     sql += " p.phonenumber AS responsiblePhoneNumber, ";
                     sql += " concat(DATE_FORMAT(rc.dtcancellation,'%d/%m/%Y'),' ',TIME_FORMAT(rc.dtcancellation,'%H:%i')) as dtcancellation, ";
                     sql += " (SELECT pp.name FROM people pp WHERE pp.idpeople = rc.fk_whocancelled) AS whocancelled,";
