@@ -25,15 +25,17 @@ function getPeople(req, res, next) {
                 sql += "  p.idpeople as id, ";
                 sql += "  p.phonenumber as phonenumber, ";
                 sql += "  p.active, ";
-                sql += "  p.dtactive, ";
-                sql += "  p.dtdeactive, ";
+                sql += "  DATE_FORMAT(dtactive,'%d/%m/%Y') AS dtactive, ";
+                sql += "  DATE_FORMAT(dtdeactive,'%d/%m/%Y') AS dtdeactive, ";
                 sql += "  gfiles.fileid as profileImg,";
                 sql += "  jc.categoryname as profession, ";
+                sql += "  jc.categorylevel as joblevel, ";
                 sql += "  p.pushexpotoken ";
                 sql += " FROM people p ";
                 sql += " INNER JOIN jobcategory jc ON (p.fk_idjobcategory = jc.idjobcategory) ";
                 sql += " LEFT JOIN gdriverfolders gf ON (gf.people_idpeople = p.idpeople) ";
-                sql += " LEFT JOIN gdriverfiles gfiles ON (gfiles.fk_idgdriverfolder = gf.idgdriverfolders AND gfiles.filetype = CONCAT(p.idpeople,'imgprofile')); ";
+                sql += " LEFT JOIN gdriverfiles gfiles ON (gfiles.fk_idgdriverfolder = gf.idgdriverfolders AND gfiles.filetype = CONCAT(p.idpeople,'imgprofile')) ";
+                sql += " ORDER BY p.active DESC; ";
             }else{
                 params = [req.body.idpeople];
                 sql += "SELECT ";

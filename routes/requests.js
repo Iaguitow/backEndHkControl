@@ -46,10 +46,10 @@ function getResquests(req, res, next) {
 
                 var params = [true,true];
                 
-                if (joblevel.toString().includes("PS", "HM", "CO")) {
+                if (joblevel.toString().includes("RM","GM","PS", "HM", "CO")) {
                     
                     var sql = " SELECT ";
-                    sql += " pr.people_has_requests AS idresquests, ";
+                    sql += " pr.people_has_requests AS idresquests, pr.dtrequested timeStampRequested,";
 
                     sql += " IF(rc.dtcancellation IS NOT NULL,NULL,IF(pr.dtrequestdone IS NULL,IF(TIMESTAMPDIFF(MINUTE, pr.dtrequested, NOW()) > 60, "; 
                     sql += " CONCAT(TIMESTAMPDIFF(HOUR, pr.dtrequested, NOW()),' Hours'), "; 
@@ -145,7 +145,7 @@ function getResquests(req, res, next) {
 
                     var params = [req.query.idpeople == null ? req.body.idpeople : req.query.idpeople];
 
-                    var sql = "SELECT pr.people_has_requests AS idresquests,";
+                    var sql = "SELECT pr.people_has_requests AS idresquests, pr.dtrequested timeStampRequested,";
 
                     sql += " IF(rc.dtcancellation IS NOT NULL,NULL,IF(pr.dtrequestdone IS NULL,IF(TIMESTAMPDIFF(MINUTE, pr.dtrequested, NOW()) > 60, "; 
                     sql += " CONCAT(TIMESTAMPDIFF(HOUR, pr.dtrequested, NOW()),' Hours'), "; 
@@ -171,7 +171,6 @@ function getResquests(req, res, next) {
                     sql += " LEFT JOIN requestreasoncancellation rc ON (pr.people_has_requests = rc.fk_request) ";
                     sql += " LEFT JOIN requests r ON (pr.fk_requests = r.idrequests) ";
                     sql += " WHERE ((date(pr.dtrequested) = CURDATE()) OR (pr.dtrequestdone IS NULL)) ";
-
                     if(joblevel.includes("RA","RS")){
                         sql += " AND pr.who_requested = ? ";
                         
@@ -180,7 +179,7 @@ function getResquests(req, res, next) {
                     }   
                     
                     sql += " ORDER BY pr.dtrequestdone ASC, pr.priority ASC, pr.dtrequested ASC; ";
-        
+
                     db.query(sql, params).then(requests => {
                         resolve(res.send(requests));
         
@@ -237,16 +236,22 @@ routes.route("/insert/new_request").post((req, res, next) => {
     new Promise((resolve, reject) => {
         try {
             var requestObject = req.body.requestObj;
-            var profession = requestObject.profession;
-            var roomNumber = requestObject.roomnumber;
 
-            if ((profession == "HOUSE STEWARD" || profession == "PUBLIC AREA")) {
+            const stringfyRequestObject = JSON.stringify(requestObject);
+            console.log(stringfyRequestObject);
+            var params = [];
+            var sql = "CALL PROC_INSERT_REQUEST('"+stringfyRequestObject+"',@_LID) ";
+            
+            //var profession = requestObject[0].profession;
+            //var roomNumber = requestObject[0].roomnumber;
+
+            /*if ((profession == "HOUSE STEWARD" || profession == "PUBLIC AREA")) {
                 var params = [requestObject.responsible, requestObject.idrequest, requestObject.who_requested, requestObject.roomnumber, requestObject.amount, requestObject.priority, requestObject.finaldescription];
                 var sql = " INSERT INTO people_has_requests (fk_people,fk_requests,dtrequested,who_requested,roomnumber,howmanyitem,priority,finaldescription) ";
                 sql += " VALUES(?,?,NOW(),?,?,?,?,?); ";
 
             } else if (roomNumber == 0) {
-                var params = [requestObject.idrequest, requestObject.who_requested, requestObject.roomnumber, requestObject.amount, requestObject.priority, requestObject.finaldescription, requestObject.roomnumber];
+                /*var params = [requestObject.idrequest, requestObject.who_requested, requestObject.roomnumber, requestObject.amount, requestObject.priority, requestObject.finaldescription, requestObject.roomnumber];
                 var sql = " INSERT INTO people_has_requests (fk_people,fk_requests,dtrequested,who_requested,roomnumber,howmanyitem,priority,finaldescription) ";
                 sql += " (SELECT p.idpeople,?,NOW(),?,?,?,?,? FROM people p ";
                 sql += " INNER JOIN floors f ON (p.idpeople = f.fk_porter_floor) ";
@@ -255,22 +260,29 @@ routes.route("/insert/new_request").post((req, res, next) => {
                 sql += " GROUP BY p.idpeople); ";
 
             } else {
-                var params = [requestObject.idrequest, requestObject.who_requested, requestObject.roomnumber, requestObject.amount, requestObject.priority, requestObject.finaldescription, requestObject.roomnumber];
+                
                 var sql = " INSERT INTO people_has_requests (fk_people,fk_requests,dtrequested,who_requested,roomnumber,howmanyitem,priority,finaldescription) ";
-                sql += " (SELECT p.idpeople,?,NOW(),?,?,?,?,? FROM people p ";
-                sql += " INNER JOIN floors f ON (p.idpeople = f.fk_porter_floor) ";
-                sql += " INNER JOIN rooms r ON (f.idfloors = r.fk_floor) ";
-                sql += " WHERE r.roomnumber = ?); ";
-            }
+                sql += " VALUES ";
+                for(var i=0;i<requestObject.length;i++){
+                    sql += "  ("+requestObject[i].responsible+", ";
+                    sql += "  "+requestObject[i].id+", ";
+                    sql += "  NOW(), ";
+                    sql += "  "+requestObject[i].who_requested+", ";
+                    sql += "  "+requestObject[i].roomnumber+", ";
+                    sql += "  "+requestObject[i].amount+", ";
+                    sql += "  '"+requestObject[i].priority+"', ";
+                    sql += "  '"+"Room: "+requestObject[i].roomnumber.toString()+" | "+"Amount: "+requestObject[i].amount.toString()+" - "+requestObject[i].finaldescription.toString()+"' ";
+                    sql += " )";
+                    if(i < requestObject.length-1){
+                        sql += ", ";
+                    }
+                }*/
 
             db.query(sql, params).then(requests => {
-                if (requests.affectedRows > 0) {
-                    helper.getPeopleTokenRequestResponsible(requests.insertId);
-                    next();
-                    return;
-                }
-                resolve(res.send(false));
-
+                helper.getPeopleTokenRequestResponsible(requests[0][0]._LID);
+                next();
+                return;
+                
             }).catch(error => {
                 reject(res.send(error));
             });
