@@ -41,12 +41,14 @@ function getResquests(req, res, next) {
     new Promise((resolve, reject) => {
         try {
             const joblevel = req.query.joblevel == null ?req.body.joblevel:req.query.joblevel;
-
+            var userAccess = req.query.userAccess == null ?req.body.userAccess:req.query.userAccess;
+            userAccess = JSON.parse(userAccess);
+            
             if ((joblevel !== undefined)) {
 
                 var params = [true,true];
                 
-                if (joblevel.toString().includes("RM","GM","PS", "HM", "CO")) {
+                if (userAccess.screenFunctionsAccess.REQUESTS_AS_MANAGER === "Y") {
                     
                     var sql = " SELECT ";
                     sql += " pr.people_has_requests AS idresquests, pr.dtrequested timeStampRequested,";
@@ -171,7 +173,7 @@ function getResquests(req, res, next) {
                     sql += " LEFT JOIN requestreasoncancellation rc ON (pr.people_has_requests = rc.fk_request) ";
                     sql += " LEFT JOIN requests r ON (pr.fk_requests = r.idrequests) ";
                     sql += " WHERE ((date(pr.dtrequested) = CURDATE()) OR (pr.dtrequestdone IS NULL)) ";
-                    if(joblevel.includes("RA","RS")){
+                    if(userAccess.screenFunctionsAccess.ONLY_REQ_I_PLACED==="Y"){
                         sql += " AND pr.who_requested = ? ";
                         
                     }else{  

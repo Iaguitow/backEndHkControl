@@ -18,7 +18,22 @@ routes.route("/login").post((req,res) => {
         try{
             var sql = " SELECT ";
                     sql += " p.idpeople, ";
-                    sql += " p.name, "; 
+                    sql += " p.name, ";
+                    
+                    sql += " (SELECT "; 
+                    sql += "     CONCAT('{',GROUP_CONCAT(CONCAT('''',s.screenname,'''',':','''',su.access,'''')),'}') "; 
+                    sql += " FROM screen_x_user su "; 
+                    sql += " INNER JOIN screens s ON (s.idscreens = su.fk_screen) ";
+                    sql += " WHERE su.fk_user = p.idpeople ";
+                    sql += " ) AS screenAccess, ";
+                    
+                    sql += " (SELECT ";
+                    sql += "     CONCAT('{',GROUP_CONCAT(CONCAT('''',sf.screenfunctionname,'''',':','''',sfu.access,'''')),'}') "; 
+                    sql += "  FROM screenfunctions_x_user sfu ";
+                    sql += "  INNER JOIN screenfunctions sf ON (sf.idscreenfunctions = sfu.fk_screenfunctions) ";
+                    sql += "  WHERE sfu.fk_user = p.idpeople ";
+                    sql += " ) AS screenFunctionAccess, ";
+
                     sql += " p.email, "; 
                     sql += " p.phonenumber, "; 
                     sql += " p.password, "; 
@@ -46,6 +61,14 @@ routes.route("/login").post((req,res) => {
                         jwt.sign({userid: result[0].idpeople, userEmail: result[0].email},db.config.token_key,(err,token)=>{
                             if(!err){
                                 result[0].tokenapi = token;
+
+                                var screen_Access = result[0].screenAccess.replace(/'/g, '"');
+                                var screen_Functions_Access = result[0].screenFunctionAccess.replace(/'/g, '"');
+                                screen_Access = JSON.parse(screen_Access);
+                                screen_Functions_Access = JSON.parse(screen_Functions_Access);
+                                result[0].screenAccess = screen_Access;
+                                result[0].screenFunctionAccess = screen_Functions_Access;
+
                                 resolve(res.send(result));
                             }else{
                                 console.log(err);
