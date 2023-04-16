@@ -12,8 +12,10 @@ function getPeopleTokenRequestResponsible(idRequest) {
             sql += " WHERE pr.people_has_requests = ? and pr.fk_people != pr.who_requested; "; 
 
             db.query(sql, params).then(peopleToken => {
-                resolve(pushNotification.sendPushNotification([peopleToken[0].pushexpotoken], peopleToken[0].finaldescription, title= "YOU HAVE A NEW REQUEST!"));
-
+                if(!!peopleToken[0].pushexpotoken){
+                    resolve(pushNotification.sendPushNotification([peopleToken[0].pushexpotoken], peopleToken[0].finaldescription, title= "YOU HAVE A NEW REQUEST!"));
+                }
+                return;
             }).catch(error => {
                 reject(error);
             });

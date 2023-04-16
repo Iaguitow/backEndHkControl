@@ -64,8 +64,10 @@ routes.route("/login").post((req,res) => {
 
                                 var screen_Access = result[0].screenAccess.replace(/'/g, '"');
                                 var screen_Functions_Access = result[0].screenFunctionAccess.replace(/'/g, '"');
+                                
                                 screen_Access = JSON.parse(screen_Access);
                                 screen_Functions_Access = JSON.parse(screen_Functions_Access);
+
                                 result[0].screenAccess = screen_Access;
                                 result[0].screenFunctionAccess = screen_Functions_Access;
 
