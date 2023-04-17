@@ -32,11 +32,11 @@ app.use("/routes/requestLog/", helper.checkApiToken, requestLog);
 app.use("/routes/jobs/", helper.checkApiToken, jobcategory);
 app.use("/routes/charts/", helper.checkApiToken, chartsdata);
 
-app.get("/routes/",(req, res) => {
+app.get("/",(req, res) => {
  //USED TO TEST THE ROOT REQUEST.
  const test = {nome:"nomes"};
- pushNotification.sendPushNotification();
+ //pushNotification.sendPushNotification();
  res.send(test);   
 });
 
-app.listen(3000, () => (console.log("Server started sucessfully in Port:"+3000)));
+app.listen(process.env.PORT || 1337, () => (console.log("Server started sucessfully in Port:"+3000)));

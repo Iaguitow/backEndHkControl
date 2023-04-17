@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "pm2 start indexAPI.js",
+    "stop": "pm2 stop indexAPI.js"
   },
   "keywords": [],
   "author": "",
@@ -18,7 +19,8 @@
     "googleapis": "^92.0.0",
     "jsonwebtoken": "^9.0.0",
     "mysql": "^2.18.1",
-    "nodemailer": "^6.7.2"
+    "nodemailer": "^6.7.2",
+    "pm2": "^5.3.0"
   },
   "devDependencies": {
     "dotenv": "^10.0.0",
