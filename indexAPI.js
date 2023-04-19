@@ -34,7 +34,7 @@ app.use("/routes/charts/", helper.checkApiToken, chartsdata);
 
 app.get("/",(req, res) => {
  //USED TO TEST THE ROOT REQUEST.
- const test = {nome:"nomes"};
+ const test = {nome:"nomeskkk"};
  //pushNotification.sendPushNotification();
  res.send(test);   
 });
