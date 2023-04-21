@@ -116,8 +116,8 @@ function getProfileChart(req, res, next) {
                 sql += " COUNT(1) totalRequests, "; 
                 sql += " SUM(IF(TIMESTAMPDIFF(MINUTE,pr.dtrequested,pr.dtrequestdone) <= (MINUTE(rt.slatime)),1,0)) AS positiveAmount, ";
                 sql += " SUM(IF(TIMESTAMPDIFF(MINUTE,pr.dtrequested,pr.dtrequestdone) > (MINUTE(rt.slatime)),1,0)) AS negativeAmount, ";
-                sql += " CONCAT(SUBSTRING(DATE_FORMAT(pr.dtrequested,'%M'),1,3),'-',DATE_FORMAT(pr.dtrequested,'%y')) AS monthRequests, ";
-                sql += " DATE(pr.dtrequested) AS dtRequests ";
+                sql += " CONCAT(SUBSTRING(DATE_FORMAT(MAX(pr.dtrequested),'%M'),1,3),'-',DATE_FORMAT(MAX(pr.dtrequested),'%y')) AS monthRequests, ";
+                sql += " DATE(MAX(pr.dtrequested)) AS dtRequests ";
             sql += " FROM people_has_requests pr ";
             sql += " INNER JOIN requests rt ON (rt.idrequests = pr.fk_requests) ";
             sql += " WHERE pr.dtrequestdone IS NOT NULL ";

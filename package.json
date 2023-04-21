@@ -4,8 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "pm2 start indexAPI.js",
-    "stop": "pm2 stop indexAPI.js"
+    "start": "node indexAPI.js"
   },
   "keywords": [],
   "author": "",

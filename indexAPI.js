@@ -39,4 +39,4 @@ app.get("/",(req, res) => {
  res.send(test);   
 });
 
-app.listen(process.env.PORT || 1337, () => (console.log("Server started sucessfully in Port:"+3000)));
+app.listen(process.env.PORT || 3000, () => (console.log("Server started sucessfully in Port:"+3000)));

@@ -1,15 +1,18 @@
 const mysql = require("mysql");
 require("dotenv").config();
+const fs = require('fs');
+const path = require('path');
 
 const config = {
     db: {
         LONDONER:{
             connectionLimit: 500,
-            host: process.env.DB_HOST,
-            user: process.env.DB_USER,
-            password: process.env.DB_PASSWORD,
-            database: process.env.DB_DATABASE_LONDONER,
-            port: process.env.DB_PORT
+            host: process.env.DB_HOST_AZURE,
+            user: process.env.DB_USER_AZURE,
+            password: process.env.DB_PASSWORD_AZURE,
+            database: process.env.DB_DATABASE_LONDONER_AZURE,
+            port: process.env.DB_PORT_AZURE,
+            ssl:{ca:fs.readFileSync(path.resolve(__dirname,"../assets/DigiCertGlobalRootCA.crt.pem"))}
         },
         VANDERBILT:{
             connectionLimit: 500,
