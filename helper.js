@@ -1,4 +1,4 @@
-const bcrypt = require('bcrypt');
+const bcrypt = require('bcryptjs');
 const db = require("./services/db");
 const jwt = require('jsonwebtoken');
 const pushNotification = require("./services/exponotification");
